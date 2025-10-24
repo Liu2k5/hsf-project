@@ -1,6 +1,5 @@
 package com.hsf.hsf_project.entity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -23,8 +22,8 @@ public class License {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long licenseId;
 
-    @OneToOne(fetch= FetchType.EAGER, cascade= CascadeType.ALL)
-    @JoinColumn(name = "orderId")
+    @OneToOne(fetch= FetchType.EAGER)
+    @JoinColumn(name = "order-id")
     private Orders order;
 
     private String licenseKey;

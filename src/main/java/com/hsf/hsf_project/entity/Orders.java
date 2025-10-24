@@ -7,11 +7,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Orders {
     @Id
@@ -19,11 +23,11 @@ public class Orders {
     private Long orderId;
     
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "user-id")
     private Users user;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "productId")
+    @JoinColumn(name = "product-id")
     private Product product;
     
     private String paidDate;

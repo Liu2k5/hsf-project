@@ -5,10 +5,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.hsf.hsf_project.entity.License;
+import com.hsf.hsf_project.entity.Orders;
 import com.hsf.hsf_project.entity.Product;
 import com.hsf.hsf_project.entity.Role;
 import com.hsf.hsf_project.entity.Users;
 import com.hsf.hsf_project.repository.LicenseRepository;
+import com.hsf.hsf_project.repository.OrderRepository;
 import com.hsf.hsf_project.repository.ProductRepository;
 import com.hsf.hsf_project.repository.RoleRepository;
 import com.hsf.hsf_project.repository.UserRepository;
@@ -23,39 +25,52 @@ public class Initialisation implements CommandLineRunner {
     private final ProductRepository productRepository;
     private final LicenseRepository licenseRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OrderRepository orderRepository;
 
     @Override
     public void run(String... args) throws Exception {
-        // Create roles
-        // if (roleRepository.findByRoleId(1) == null && roleRepository.findByRoleId(2) == null) {
         if (roleRepository.findAll().isEmpty()) {
-            initializeRolesAndUsers();
+            initialiseRolesAndUsers();
         }
         if (productRepository.findAll().isEmpty()) {
-            initializeProducts();
+            initialiseProducts();
+        }
+        if (orderRepository.findAll().isEmpty()) {
+            initialiseOrders();
         }
         if (licenseRepository.findAll().isEmpty()) {
-            initializeLicenses();
+            initialiseLicenses();
         }
 
     }
 
-    private void initializeLicenses() {
-        // Create licenses
-        if (licenseRepository.count() == 0) {
-            License license1 = new License();
-            license1.setLicenseKey("LICENSE-001");
-            license1.setEnabled(true);
-            licenseRepository.save(license1);
+    private void initialiseOrders() {
+        Orders order1 = new Orders();
+        order1.setProduct(productRepository.findById(1L).orElse(null));
+        order1.setUser(userRepository.findById(1L).orElse(null));
+        orderRepository.save(order1);
 
-            License license2 = new License();
-            license2.setLicenseKey("LICENSE-002");
-            license2.setEnabled(true);
-            licenseRepository.save(license2);
-        }
+        Orders order2 = new Orders();
+        order2.setProduct(productRepository.findById(2L).orElse(null));
+        order2.setUser(userRepository.findById(2L).orElse(null));
+        orderRepository.save(order2);
     }
 
-    private void initializeProducts() {
+    private void initialiseLicenses() {
+        License license1 = new License();
+        license1.setOrder(orderRepository.findById(1L).orElseThrow(() -> new RuntimeException("Order not found")));
+        license1.setLicenseKey("LICENSE-001");
+        license1.setEnabled(true);
+        licenseRepository.save(license1);
+
+        License license2 = new License();
+        license2.setOrder(orderRepository.findById(2L).orElseThrow(() -> new RuntimeException("Order not found")));
+        license2.setLicenseKey("LICENSE-002");
+        license2.setEnabled(true);
+        licenseRepository.save(license2);
+    }
+
+    private void initialiseProducts() {
         Product product1 = new Product();
         product1.setProductName("Product 1");
         product1.setDescription("Description for Product 1");
@@ -71,7 +86,7 @@ public class Initialisation implements CommandLineRunner {
         productRepository.save(product2);
     }
 
-    private void initializeRolesAndUsers() {
+    private void initialiseRolesAndUsers() {
         Role adminRole = new Role();
         adminRole.setRoleName("admin");
 
