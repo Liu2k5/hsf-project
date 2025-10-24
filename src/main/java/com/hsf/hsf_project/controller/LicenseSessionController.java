@@ -14,13 +14,13 @@ public class LicenseSessionController {
     private final LicenseSessionService service;
     public LicenseSessionController(LicenseSessionService service) { this.service = service; }
 
-    record ActivateRequest(String licenseKey, String deviceId) {}
+    record ActivateRequest(String licenseKey, String deviceId, String productName) {}
     record GenericResp(String status, String message) {}
 
     @PostMapping("/activate")
     public ResponseEntity<?> activate(@RequestBody ActivateRequest req) {
         try {
-            String r = service.activate(req.licenseKey(), req.deviceId());
+            String r = service.activate(req.licenseKey(), req.deviceId(), req.productName());
             return ResponseEntity.ok(new GenericResp("OK", r));
         } catch (RuntimeException ex) {
             return ResponseEntity.status(409).body(new GenericResp("FAIL", ex.getMessage()));

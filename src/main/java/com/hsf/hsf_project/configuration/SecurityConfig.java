@@ -10,13 +10,13 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 @Configuration
 public class SecurityConfig {
 
-    private String[] resourceUrls = {"/css/*", "/js/*", "/images/*"};
+    private String[] resourceUrls = {"/css/**", "/js/**", "/images/**"};
 
     private String[] guestPages = {"/", "/details", "/login", "/signup"};
 
-    private String[] adminPages = {"/admin/*"};
+    private String[] adminPages = {"/admin/**"};
 
-    private String[] customerPages = {"/customer/*"};
+    private String[] customerPages = {"/customer/**"};
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {

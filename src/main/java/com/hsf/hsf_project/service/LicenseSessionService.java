@@ -28,9 +28,12 @@ public class LicenseSessionService {
     }
 
     @Transactional
-    public synchronized String activate(String licenseKey, String deviceId) {
+    public synchronized String activate(String licenseKey, String deviceId, String productName) {
         License license = licenseRepo.findByLicenseKey(licenseKey)
                 .orElseThrow(() -> new RuntimeException("License not found"));
+        if (!license.getOrder().getProduct().getProductName().equals(productName)) {
+            throw new RuntimeException("Product name mismatch");
+        }
 
         // if (license.getStatus() != LicenseStatus.ACTIVE) {
         if (!license.isEnabled()) {
