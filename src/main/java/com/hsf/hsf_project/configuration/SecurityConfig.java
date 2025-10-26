@@ -12,7 +12,7 @@ public class SecurityConfig {
 
     private String[] resourceUrls = {"/css/**", "/js/**", "/images/**"};
 
-    private String[] guestPages = {"/", "/details", "/login", "/signup"};
+    private String[] guestPages = {"/", "/details", "/login", "/signup", "/api/license/**"};
 
     private String[] adminPages = {"/admin/**"};
 
