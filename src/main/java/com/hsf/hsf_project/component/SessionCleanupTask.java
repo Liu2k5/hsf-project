@@ -11,7 +11,7 @@ import com.hsf.hsf_project.service.LicenseSessionService;
 @Component
 public class SessionCleanupTask {
     private final LicenseSessionService service;
-    @Value("${app.session.timeout-minutes:10}")
+    @Value("${app.session.timeout-minutes:5}")
     private long timeoutMinutes;
 
     public SessionCleanupTask(LicenseSessionService service) { this.service = service; }

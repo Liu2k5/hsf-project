@@ -116,12 +116,14 @@ public class Initialisation implements CommandLineRunner {
         Users user1 = new Users();
         user1.setUsername("admin");
         user1.setPassword(passwordEncoder.encode("admin"));
+        user1.setEmail("manager@shop.com");
         user1.setRole(roleRepository.findByRoleName("admin"));
         userRepository.save(user1);
 
         Users user2 = new Users();
         user2.setUsername("customer");
         user2.setPassword(passwordEncoder.encode("customer"));
+        user2.setEmail("customer@shop.com");
         user2.setRole(roleRepository.findByRoleName("customer"));
         userRepository.save(user2);
     }
