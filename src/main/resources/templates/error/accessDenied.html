@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Không có quyền truy cập</title>
+    <style>
+        body {
+            background: linear-gradient(to bottom right, #f7efe5, #fffaf3);
+            font-family: "Noto Serif", "Times New Roman", serif;
+            text-align: center;
+            padding: 80px 20px;
+            color: #3a2e27;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            color: #a85c3d;
+            text-shadow: 1px 1px 2px #d8bfa7;
+        }
+
+        p {
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        .seal {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 14px 32px;
+            border: 2px solid #a85c3d;
+            border-radius: 12px;
+            background-color: #fff9f3;
+            cursor: pointer;
+            text-decoration: none;
+            color: #a85c3d;
+            transition: all 0.25s ease;
+        }
+
+        .seal:hover {
+            background-color: #a85c3d;
+            color: #fff9f3;
+            transform: scale(1.05);
+        }
+
+        .divider {
+            margin: 40px auto;
+            width: 120px;
+            height: 2px;
+            background-color: #a85c3d;
+        }
+
+        .poem {
+            font-style: italic;
+            color: #6c584c;
+            font-size: 1em;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+<h1>Hình như bạn vào nhầm nơi rồi :)))</h1>
+<div class="divider"></div>
+<p th:text="${error}">Bạn không có quyền truy cập vào trang này.</p>
+
+<a href="/" class="seal">↩ Trở về Trang Chủ</a>
+
+<div class="poem">
+    <p>"Ngọc môn khép kín vì lệnh cấm,
+        Cổng son chỉ mở kẻ có quyền."</p>
+</div>
+</body>
+</html>

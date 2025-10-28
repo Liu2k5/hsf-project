@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang quản trị</title>
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            background: #f5f7fb;
+            padding: 40px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #b02a37;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Chào mừng đến với trang quản trị</h1>
+    <form th:action="@{/logout}" method="post">
+        <button type="submit">Đăng xuất</button>
+    </form>
+</header>
+
+<section>
+    <h2>Xin chào, <span th:text="${adminName != null ? adminName : 'Admin'}">Admin</span>!</h2>
+    <p>Đây là khu vực quản trị của hệ thống license.</p>
+</section>
+</body>
+</html>

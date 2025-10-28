@@ -16,7 +16,7 @@ import vn.payos.PayOS;
 import vn.payos.model.webhooks.WebhookData;
 
 @RequiredArgsConstructor
-@RestController
+//@RestController
 public class PayOsWebhookController {
 
     private final PayOS payOS;
