@@ -393,10 +393,10 @@
     <div class="container">
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
-            <button class="nav-tab active" onclick="switchTab('dashboard')">📊 Tổng quan</button>
-            <button class="nav-tab" onclick="switchTab('users')">👥 Người dùng</button>
-            <button class="nav-tab" onclick="switchTab('orders')">📦 Đơn hàng</button>
-            <button class="nav-tab" onclick="switchTab('licenses')">🔑 Giấy phép</button>
+            <button class="nav-tab active" onclick="switchTab('dashboard', event)">📊 Tổng quan</button>
+            <button class="nav-tab" onclick="switchTab('users', event)">👥 Người dùng</button>
+            <button class="nav-tab" onclick="switchTab('orders', event)">📦 Đơn hàng</button>
+            <button class="nav-tab" onclick="switchTab('licenses', event)">🔑 Giấy phép</button>
         </div>
 
         <!-- Dashboard Tab -->
@@ -602,7 +602,7 @@
         let searchTimeout = null;
 
         // Tab switching
-        function switchTab(tabName) {
+        function switchTab(tabName, event) {
             document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
@@ -633,11 +633,19 @@
             }).format(amount);
         }
 
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Load Dashboard
         async function loadDashboard() {
             try {
                 // Load summary stats
                 const statsResponse = await fetch('/admin/stats/summary');
+                if (!statsResponse.ok) throw new Error('Failed to load stats');
                 const stats = await statsResponse.json();
                 
                 document.getElementById('total-revenue').textContent = formatCurrency(stats.totalRevenue || 0);
@@ -646,6 +654,7 @@
 
                 // Load top products
                 const productsResponse = await fetch('/admin/stats/top-products');
+                if (!productsResponse.ok) throw new Error('Failed to load products');
                 const products = await productsResponse.json();
                 
                 const productsList = document.getElementById('top-products');
@@ -654,7 +663,7 @@
                 } else {
                     productsList.innerHTML = products.map(p => `
                         <li>
-                            <span class="product-name">${p.productName}</span>
+                            <span class="product-name">${escapeHtml(p.productName)}</span>
                             <span class="product-count">${p.salesCount} đơn</span>
                         </li>
                     `).join('');
@@ -662,6 +671,7 @@
 
                 // Load revenue chart (simplified - in production use Chart.js)
                 const revenueResponse = await fetch('/admin/stats/revenue-chart');
+                if (!revenueResponse.ok) throw new Error('Failed to load revenue data');
                 const revenueData = await revenueResponse.json();
                 
                 // Note: This is a placeholder. In production, use Chart.js or similar library
@@ -737,24 +747,28 @@
             currentUsersPage = page;
             try {
                 const response = await fetch(`/admin/users?page=${page}&size=10`);
+                if (!response.ok) throw new Error('Failed to load users');
                 const data = await response.json();
                 
                 const tbody = document.getElementById('users-table');
                 if (data.content.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Không có dữ liệu</td></tr>';
                 } else {
-                    tbody.innerHTML = data.content.map(user => `
+                    tbody.innerHTML = data.content.map(user => {
+                        const escapedUsername = escapeHtml(user.username);
+                        const escapedRole = escapeHtml(user.roleName);
+                        return `
                         <tr>
                             <td>${user.userId}</td>
-                            <td>${user.username}</td>
-                            <td><span class="badge badge-info">${user.roleName}</span></td>
+                            <td>${escapedUsername}</td>
+                            <td><span class="badge badge-info">${escapedRole}</span></td>
                             <td>
                                 <span class="badge ${user.locked ? 'badge-danger' : 'badge-success'}">
                                     ${user.locked ? '🔒 Khóa' : '✓ Hoạt động'}
                                 </span>
                             </td>
                             <td>
-                                <button class="btn btn-primary btn-sm" onclick="openUpdateRole(${user.userId}, '${user.username}', '${user.roleName}')">
+                                <button class="btn btn-primary btn-sm" onclick='openUpdateRole(${user.userId}, ${JSON.stringify(escapedUsername)}, ${JSON.stringify(escapedRole)})'>
                                     Đổi vai trò
                                 </button>
                                 <button class="btn ${user.locked ? 'btn-success' : 'btn-warning'} btn-sm" 
@@ -763,7 +777,7 @@
                                 </button>
                             </td>
                         </tr>
-                    `).join('');
+                    `;}).join('');
                 }
                 
                 renderPagination('users-pagination', data.totalPages, page, loadUsers);
@@ -781,10 +795,11 @@
                 const date = document.getElementById('order-date-filter').value;
                 
                 let url = `/admin/orders?page=${page}&size=10`;
-                if (status) url += `&status=${status}`;
-                if (date) url += `&startDate=${date}`;
+                if (status) url += `&status=${encodeURIComponent(status)}`;
+                if (date) url += `&startDate=${encodeURIComponent(date)}`;
                 
                 const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to load orders');
                 const data = await response.json();
                 
                 const tbody = document.getElementById('orders-table');
@@ -794,8 +809,8 @@
                     tbody.innerHTML = data.content.map(order => `
                         <tr>
                             <td>${order.orderId}</td>
-                            <td>${order.username}</td>
-                            <td>${order.productName}</td>
+                            <td>${escapeHtml(order.username)}</td>
+                            <td>${escapeHtml(order.productName)}</td>
                             <td>${order.paidDate || 'N/A'}</td>
                             <td>
                                 <span class="badge ${getStatusBadge(order.status)}">
@@ -826,18 +841,23 @@
                 if (searchKey) url += `&searchKey=${encodeURIComponent(searchKey)}`;
                 
                 const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to load licenses');
                 const data = await response.json();
                 
                 const tbody = document.getElementById('licenses-table');
                 if (data.content.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Không có dữ liệu</td></tr>';
                 } else {
-                    tbody.innerHTML = data.content.map(license => `
+                    tbody.innerHTML = data.content.map(license => {
+                        const escapedKey = escapeHtml(license.licenseKey);
+                        const escapedUsername = escapeHtml(license.username);
+                        const escapedProduct = escapeHtml(license.productName);
+                        return `
                         <tr>
                             <td>${license.licenseId}</td>
-                            <td><code>${license.licenseKey}</code></td>
-                            <td>${license.username}</td>
-                            <td>${license.productName}</td>
+                            <td><code>${escapedKey}</code></td>
+                            <td>${escapedUsername}</td>
+                            <td>${escapedProduct}</td>
                             <td>
                                 <span class="badge ${license.enabled ? 'badge-success' : 'badge-danger'}">
                                     ${license.enabled ? '✓ Hoạt động' : '✗ Bị thu hồi'}
@@ -845,16 +865,16 @@
                             </td>
                             <td>
                                 ${license.enabled ? `
-                                    <button class="btn btn-danger btn-sm" onclick="openRevoke('${license.licenseKey}')">
+                                    <button class="btn btn-danger btn-sm" onclick='openRevoke(${JSON.stringify(escapedKey)})'>
                                         Thu hồi
                                     </button>
-                                    <button class="btn btn-warning btn-sm" onclick="resetDevice('${license.licenseKey}')">
+                                    <button class="btn btn-warning btn-sm" onclick='resetDevice(${JSON.stringify(escapedKey)})'>
                                         Reset thiết bị
                                     </button>
                                 ` : '<span style="color: #999;">Đã thu hồi</span>'}
                             </td>
                         </tr>
-                    `).join('');
+                    `;}).join('');
                 }
                 
                 renderPagination('licenses-pagination', data.totalPages, page, (p) => loadLicenses(p, searchKey));
@@ -899,30 +919,40 @@
                 return;
             }
             
-            let html = `
-                <button ${currentPage === 0 ? 'disabled' : ''} onclick="${loadFunction.name}(${currentPage - 1})">
-                    ← Trước
-                </button>
-            `;
+            // Create pagination buttons programmatically instead of using function.name
+            container.innerHTML = '';
             
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '← Trước';
+            prevBtn.disabled = currentPage === 0;
+            if (currentPage > 0) {
+                prevBtn.addEventListener('click', () => loadFunction(currentPage - 1));
+            }
+            container.appendChild(prevBtn);
+            
+            // Page number buttons
             const start = Math.max(0, currentPage - 2);
             const end = Math.min(totalPages, currentPage + 3);
             
             for (let i = start; i < end; i++) {
-                html += `
-                    <button class="${i === currentPage ? 'active' : ''}" onclick="${loadFunction.name}(${i})">
-                        ${i + 1}
-                    </button>
-                `;
+                const pageBtn = document.createElement('button');
+                pageBtn.textContent = i + 1;
+                if (i === currentPage) {
+                    pageBtn.className = 'active';
+                }
+                pageBtn.addEventListener('click', () => loadFunction(i));
+                container.appendChild(pageBtn);
             }
             
-            html += `
-                <button ${currentPage >= totalPages - 1 ? 'disabled' : ''} onclick="${loadFunction.name}(${currentPage + 1})">
-                    Sau →
-                </button>
-            `;
-            
-            container.innerHTML = html;
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Sau →';
+            nextBtn.disabled = currentPage >= totalPages - 1;
+            if (currentPage < totalPages - 1) {
+                nextBtn.addEventListener('click', () => loadFunction(currentPage + 1));
+            }
+            container.appendChild(nextBtn);
         }
 
         function showError(elementId, message) {
@@ -997,43 +1027,80 @@
             
             try {
                 const response = await fetch(`/admin/orders/${orderId}`);
+                if (!response.ok) throw new Error('Failed to load order details');
                 const order = await response.json();
                 
-                document.getElementById('order-details').innerHTML = `
-                    <div class="form-group">
-                        <label>Mã đơn hàng:</label>
-                        <div>${order.orderId}</div>
-                    </div>
-                    <div class="form-group">
-                        <label>Người dùng:</label>
-                        <div>${order.username}</div>
-                    </div>
-                    <div class="form-group">
-                        <label>Sản phẩm:</label>
-                        <div>${order.productName}</div>
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày thanh toán:</label>
-                        <div>${order.paidDate || 'Chưa thanh toán'}</div>
-                    </div>
-                    <div class="form-group">
-                        <label>Trạng thái:</label>
-                        <div><span class="badge ${getStatusBadge(order.status)}">${getStatusText(order.status)}</span></div>
-                    </div>
-                    ${order.license ? `
-                        <div class="form-group">
-                            <label>Giấy phép:</label>
-                            <div>
-                                <div><strong>Key:</strong> <code>${order.license.licenseKey}</code></div>
-                                <div><strong>Trạng thái:</strong> 
-                                    <span class="badge ${order.license.enabled ? 'badge-success' : 'badge-danger'}">
-                                        ${order.license.enabled ? 'Hoạt động' : 'Bị thu hồi'}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    ` : '<div class="form-group"><em>Chưa có giấy phép</em></div>'}
-                `;
+                const detailsDiv = document.getElementById('order-details');
+                detailsDiv.innerHTML = '';
+                
+                // Create elements programmatically for safety
+                const fields = [
+                    { label: 'Mã đơn hàng:', value: order.orderId },
+                    { label: 'Người dùng:', value: order.username },
+                    { label: 'Sản phẩm:', value: order.productName },
+                    { label: 'Ngày thanh toán:', value: order.paidDate || 'Chưa thanh toán' }
+                ];
+                
+                fields.forEach(field => {
+                    const group = document.createElement('div');
+                    group.className = 'form-group';
+                    const label = document.createElement('label');
+                    label.textContent = field.label;
+                    const value = document.createElement('div');
+                    value.textContent = field.value;
+                    group.appendChild(label);
+                    group.appendChild(value);
+                    detailsDiv.appendChild(group);
+                });
+                
+                // Status field with badge
+                const statusGroup = document.createElement('div');
+                statusGroup.className = 'form-group';
+                const statusLabel = document.createElement('label');
+                statusLabel.textContent = 'Trạng thái:';
+                const statusValue = document.createElement('div');
+                statusValue.innerHTML = `<span class="badge ${getStatusBadge(order.status)}">${getStatusText(order.status)}</span>`;
+                statusGroup.appendChild(statusLabel);
+                statusGroup.appendChild(statusValue);
+                detailsDiv.appendChild(statusGroup);
+                
+                // License info if exists
+                if (order.license) {
+                    const licenseGroup = document.createElement('div');
+                    licenseGroup.className = 'form-group';
+                    const licenseLabel = document.createElement('label');
+                    licenseLabel.textContent = 'Giấy phép:';
+                    const licenseValue = document.createElement('div');
+                    
+                    const keyDiv = document.createElement('div');
+                    const keyStrong = document.createElement('strong');
+                    keyStrong.textContent = 'Key: ';
+                    const keyCode = document.createElement('code');
+                    keyCode.textContent = order.license.licenseKey;
+                    keyDiv.appendChild(keyStrong);
+                    keyDiv.appendChild(keyCode);
+                    
+                    const statusDiv = document.createElement('div');
+                    const statusStrong = document.createElement('strong');
+                    statusStrong.textContent = 'Trạng thái: ';
+                    statusDiv.appendChild(statusStrong);
+                    statusDiv.innerHTML += `<span class="badge ${order.license.enabled ? 'badge-success' : 'badge-danger'}">
+                        ${order.license.enabled ? 'Hoạt động' : 'Bị thu hồi'}
+                    </span>`;
+                    
+                    licenseValue.appendChild(keyDiv);
+                    licenseValue.appendChild(statusDiv);
+                    licenseGroup.appendChild(licenseLabel);
+                    licenseGroup.appendChild(licenseValue);
+                    detailsDiv.appendChild(licenseGroup);
+                } else {
+                    const noLicenseGroup = document.createElement('div');
+                    noLicenseGroup.className = 'form-group';
+                    const em = document.createElement('em');
+                    em.textContent = 'Chưa có giấy phép';
+                    noLicenseGroup.appendChild(em);
+                    detailsDiv.appendChild(noLicenseGroup);
+                }
             } catch (error) {
                 console.error('Error loading order details:', error);
                 document.getElementById('order-details').innerHTML = '<div class="error">Không thể tải chi tiết đơn hàng</div>';
