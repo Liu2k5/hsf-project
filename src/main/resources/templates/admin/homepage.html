@@ -1,11 +1,1175 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi" xmlns:th="https://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang quản trị</title>
+    <title>Bảng điều khiển Quản trị</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #ddd;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-tab:hover {
+            color: #2c3e50;
+        }
+
+        .nav-tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .card-header h2 {
+            font-size: 1.25rem;
+            color: #2c3e50;
+        }
+
+        .search-input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            width: 300px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .select-input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #f8f9fa;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9rem;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #d68910;
+        }
+
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #229954;
+        }
+
+        .btn-sm {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.25rem;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin: 2rem 0;
+        }
+
+        .products-list {
+            list-style: none;
+        }
+
+        .products-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .products-list li:last-child {
+            border-bottom: none;
+        }
+
+        .product-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .product-count {
+            color: #666;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
-    <h1>Chào mừng đến với trang quản trị</h1>
+    <div class="header">
+        <h1>🎛️ Bảng điều khiển Quản trị</h1>
+    </div>
+
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('dashboard', event)">📊 Tổng quan</button>
+            <button class="nav-tab" onclick="switchTab('users', event)">👥 Người dùng</button>
+            <button class="nav-tab" onclick="switchTab('orders', event)">📦 Đơn hàng</button>
+            <button class="nav-tab" onclick="switchTab('licenses', event)">🔑 Giấy phép</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Tổng doanh thu</h3>
+                    <div class="value" id="total-revenue">₫0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Đơn hàng mới hôm nay</h3>
+                    <div class="value" id="new-orders-today">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Phiên hoạt động</h3>
+                    <div class="value" id="active-sessions">0</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>📈 Biểu đồ doanh thu</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="revenue-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>🏆 Sản phẩm bán chạy</h2>
+                </div>
+                <ul class="products-list" id="top-products">
+                    <li class="loading">Đang tải...</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Quản lý người dùng</h2>
+                </div>
+                <div id="users-error" class="error" style="display: none;"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên đăng nhập</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table">
+                        <tr>
+                            <td colspan="5" class="loading">Đang tải...</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination" id="users-pagination"></div>
+            </div>
+        </div>
+
+        <!-- Orders Tab -->
+        <div id="orders-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Quản lý đơn hàng</h2>
+                </div>
+                <div class="filter-group">
+                    <select id="order-status-filter" class="select-input" onchange="loadOrders(0)">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="PENDING">Đang chờ</option>
+                        <option value="COMPLETED">Hoàn thành</option>
+                        <option value="CANCELLED">Đã hủy</option>
+                    </select>
+                    <input type="date" id="order-date-filter" class="select-input" onchange="loadOrders(0)">
+                </div>
+                <div id="orders-error" class="error" style="display: none;"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Người dùng</th>
+                            <th>Sản phẩm</th>
+                            <th>Ngày thanh toán</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table">
+                        <tr>
+                            <td colspan="6" class="loading">Đang tải...</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination" id="orders-pagination"></div>
+            </div>
+        </div>
+
+        <!-- Licenses Tab -->
+        <div id="licenses-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Quản lý giấy phép</h2>
+                    <input type="text" id="license-search" class="search-input" 
+                           placeholder="Tìm kiếm theo key, người dùng hoặc sản phẩm..." 
+                           onkeyup="searchLicenses()">
+                </div>
+                <div id="licenses-error" class="error" style="display: none;"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>License Key</th>
+                            <th>Người dùng</th>
+                            <th>Sản phẩm</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="licenses-table">
+                        <tr>
+                            <td colspan="6" class="loading">Đang tải...</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination" id="licenses-pagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Role Modal -->
+    <div id="role-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cập nhật vai trò</h3>
+            </div>
+            <div class="form-group">
+                <label>Tên đăng nhập:</label>
+                <input type="text" id="role-username" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label>Vai trò mới:</label>
+                <select id="role-select" class="form-control">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('role-modal')">Hủy</button>
+                <button class="btn btn-primary" onclick="updateRole()">Cập nhật</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revoke License Modal -->
+    <div id="revoke-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Thu hồi giấy phép</h3>
+            </div>
+            <div class="form-group">
+                <label>License Key:</label>
+                <input type="text" id="revoke-key" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label>Lý do thu hồi:</label>
+                <textarea id="revoke-reason" class="form-control" rows="3" 
+                          placeholder="Nhập lý do thu hồi..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('revoke-modal')">Hủy</button>
+                <button class="btn btn-danger" onclick="revokeLicense()">Thu hồi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="order-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Chi tiết đơn hàng</h3>
+            </div>
+            <div id="order-details">
+                <div class="loading">Đang tải...</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('order-modal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentUsersPage = 0;
+        let currentOrdersPage = 0;
+        let currentLicensesPage = 0;
+        let selectedUserId = null;
+        let selectedLicenseKey = null;
+        let searchTimeout = null;
+
+        // Tab switching
+        function switchTab(tabName, event) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+
+            // Load data when switching tabs
+            if (tabName === 'dashboard') loadDashboard();
+            else if (tabName === 'users') loadUsers(0);
+            else if (tabName === 'orders') loadOrders(0);
+            else if (tabName === 'licenses') loadLicenses(0);
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(amount);
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Load Dashboard
+        async function loadDashboard() {
+            try {
+                // Load summary stats
+                const statsResponse = await fetch('/admin/stats/summary');
+                if (!statsResponse.ok) throw new Error('Failed to load stats');
+                const stats = await statsResponse.json();
+                
+                document.getElementById('total-revenue').textContent = formatCurrency(stats.totalRevenue || 0);
+                document.getElementById('new-orders-today').textContent = stats.newOrdersToday || 0;
+                document.getElementById('active-sessions').textContent = stats.activeSessions || 0;
+
+                // Load top products
+                const productsResponse = await fetch('/admin/stats/top-products');
+                if (!productsResponse.ok) throw new Error('Failed to load products');
+                const products = await productsResponse.json();
+                
+                const productsList = document.getElementById('top-products');
+                if (products.length === 0) {
+                    productsList.innerHTML = '<li>Chưa có dữ liệu</li>';
+                } else {
+                    productsList.innerHTML = products.map(p => `
+                        <li>
+                            <span class="product-name">${escapeHtml(p.productName)}</span>
+                            <span class="product-count">${p.salesCount} đơn</span>
+                        </li>
+                    `).join('');
+                }
+
+                // Load revenue chart (simplified - in production use Chart.js)
+                const revenueResponse = await fetch('/admin/stats/revenue-chart');
+                if (!revenueResponse.ok) throw new Error('Failed to load revenue data');
+                const revenueData = await revenueResponse.json();
+                
+                // Note: This is a placeholder. In production, use Chart.js or similar library
+                const canvas = document.getElementById('revenue-chart');
+                const ctx = canvas.getContext('2d');
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = 300;
+                
+                if (revenueData.length > 0) {
+                    drawSimpleChart(ctx, revenueData, canvas.width, canvas.height);
+                } else {
+                    ctx.font = '16px Arial';
+                    ctx.fillStyle = '#666';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Chưa có dữ liệu doanh thu', canvas.width / 2, canvas.height / 2);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Simple chart drawing (replace with Chart.js in production)
+        function drawSimpleChart(ctx, data, width, height) {
+            const padding = 40;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+            
+            const maxRevenue = Math.max(...data.map(d => d.revenue));
+            const xStep = chartWidth / (data.length - 1 || 1);
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw axes
+            ctx.strokeStyle = '#ddd';
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Draw line
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            data.forEach((point, index) => {
+                const x = padding + index * xStep;
+                const y = height - padding - (point.revenue / maxRevenue) * chartHeight;
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+            
+            // Draw points
+            ctx.fillStyle = '#3498db';
+            data.forEach((point, index) => {
+                const x = padding + index * xStep;
+                const y = height - padding - (point.revenue / maxRevenue) * chartHeight;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        // Load Users
+        async function loadUsers(page) {
+            currentUsersPage = page;
+            try {
+                const response = await fetch(`/admin/users?page=${page}&size=10`);
+                if (!response.ok) throw new Error('Failed to load users');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('users-table');
+                if (data.content.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Không có dữ liệu</td></tr>';
+                } else {
+                    tbody.innerHTML = data.content.map(user => {
+                        const escapedUsername = escapeHtml(user.username);
+                        const escapedRole = escapeHtml(user.roleName);
+                        return `
+                        <tr>
+                            <td>${user.userId}</td>
+                            <td>${escapedUsername}</td>
+                            <td><span class="badge badge-info">${escapedRole}</span></td>
+                            <td>
+                                <span class="badge ${user.locked ? 'badge-danger' : 'badge-success'}">
+                                    ${user.locked ? '🔒 Khóa' : '✓ Hoạt động'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick='openUpdateRole(${user.userId}, ${JSON.stringify(escapedUsername)}, ${JSON.stringify(escapedRole)})'>
+                                    Đổi vai trò
+                                </button>
+                                <button class="btn ${user.locked ? 'btn-success' : 'btn-warning'} btn-sm" 
+                                        onclick="toggleLock(${user.userId}, ${!user.locked})">
+                                    ${user.locked ? 'Mở khóa' : 'Khóa'}
+                                </button>
+                            </td>
+                        </tr>
+                    `;}).join('');
+                }
+                
+                renderPagination('users-pagination', data.totalPages, page, loadUsers);
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showError('users-error', 'Không thể tải dữ liệu người dùng');
+            }
+        }
+
+        // Load Orders
+        async function loadOrders(page) {
+            currentOrdersPage = page;
+            try {
+                const status = document.getElementById('order-status-filter').value;
+                const date = document.getElementById('order-date-filter').value;
+                
+                let url = `/admin/orders?page=${page}&size=10`;
+                if (status) url += `&status=${encodeURIComponent(status)}`;
+                if (date) url += `&startDate=${encodeURIComponent(date)}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to load orders');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('orders-table');
+                if (data.content.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Không có dữ liệu</td></tr>';
+                } else {
+                    tbody.innerHTML = data.content.map(order => `
+                        <tr>
+                            <td>${order.orderId}</td>
+                            <td>${escapeHtml(order.username)}</td>
+                            <td>${escapeHtml(order.productName)}</td>
+                            <td>${order.paidDate || 'N/A'}</td>
+                            <td>
+                                <span class="badge ${getStatusBadge(order.status)}">
+                                    ${getStatusText(order.status)}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="viewOrderDetails(${order.orderId})">
+                                    Chi tiết
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+                
+                renderPagination('orders-pagination', data.totalPages, page, loadOrders);
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                showError('orders-error', 'Không thể tải dữ liệu đơn hàng');
+            }
+        }
+
+        // Load Licenses
+        async function loadLicenses(page, searchKey = '') {
+            currentLicensesPage = page;
+            try {
+                let url = `/admin/licenses?page=${page}&size=10`;
+                if (searchKey) url += `&searchKey=${encodeURIComponent(searchKey)}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to load licenses');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('licenses-table');
+                if (data.content.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Không có dữ liệu</td></tr>';
+                } else {
+                    tbody.innerHTML = data.content.map(license => {
+                        const escapedKey = escapeHtml(license.licenseKey);
+                        const escapedUsername = escapeHtml(license.username);
+                        const escapedProduct = escapeHtml(license.productName);
+                        return `
+                        <tr>
+                            <td>${license.licenseId}</td>
+                            <td><code>${escapedKey}</code></td>
+                            <td>${escapedUsername}</td>
+                            <td>${escapedProduct}</td>
+                            <td>
+                                <span class="badge ${license.enabled ? 'badge-success' : 'badge-danger'}">
+                                    ${license.enabled ? '✓ Hoạt động' : '✗ Bị thu hồi'}
+                                </span>
+                            </td>
+                            <td>
+                                ${license.enabled ? `
+                                    <button class="btn btn-danger btn-sm" onclick='openRevoke(${JSON.stringify(escapedKey)})'>
+                                        Thu hồi
+                                    </button>
+                                    <button class="btn btn-warning btn-sm" onclick='resetDevice(${JSON.stringify(escapedKey)})'>
+                                        Reset thiết bị
+                                    </button>
+                                ` : '<span style="color: #999;">Đã thu hồi</span>'}
+                            </td>
+                        </tr>
+                    `;}).join('');
+                }
+                
+                renderPagination('licenses-pagination', data.totalPages, page, (p) => loadLicenses(p, searchKey));
+            } catch (error) {
+                console.error('Error loading licenses:', error);
+                showError('licenses-error', 'Không thể tải dữ liệu giấy phép');
+            }
+        }
+
+        // Search licenses with debounce
+        function searchLicenses() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchKey = document.getElementById('license-search').value;
+                loadLicenses(0, searchKey);
+            }, 500);
+        }
+
+        // Helper functions
+        function getStatusBadge(status) {
+            const badges = {
+                'PENDING': 'badge-warning',
+                'COMPLETED': 'badge-success',
+                'CANCELLED': 'badge-danger'
+            };
+            return badges[status] || 'badge-info';
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'PENDING': 'Đang chờ',
+                'COMPLETED': 'Hoàn thành',
+                'CANCELLED': 'Đã hủy'
+            };
+            return texts[status] || status;
+        }
+
+        function renderPagination(containerId, totalPages, currentPage, loadFunction) {
+            const container = document.getElementById(containerId);
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            // Create pagination buttons programmatically instead of using function.name
+            container.innerHTML = '';
+            
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '← Trước';
+            prevBtn.disabled = currentPage === 0;
+            if (currentPage > 0) {
+                prevBtn.addEventListener('click', () => loadFunction(currentPage - 1));
+            }
+            container.appendChild(prevBtn);
+            
+            // Page number buttons
+            const start = Math.max(0, currentPage - 2);
+            const end = Math.min(totalPages, currentPage + 3);
+            
+            for (let i = start; i < end; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.textContent = i + 1;
+                if (i === currentPage) {
+                    pageBtn.className = 'active';
+                }
+                pageBtn.addEventListener('click', () => loadFunction(i));
+                container.appendChild(pageBtn);
+            }
+            
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Sau →';
+            nextBtn.disabled = currentPage >= totalPages - 1;
+            if (currentPage < totalPages - 1) {
+                nextBtn.addEventListener('click', () => loadFunction(currentPage + 1));
+            }
+            container.appendChild(nextBtn);
+        }
+
+        function showError(elementId, message) {
+            const errorDiv = document.getElementById(elementId);
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // User management functions
+        function openUpdateRole(userId, username, currentRole) {
+            selectedUserId = userId;
+            document.getElementById('role-username').value = username;
+            document.getElementById('role-select').value = currentRole;
+            openModal('role-modal');
+        }
+
+        async function updateRole() {
+            const newRole = document.getElementById('role-select').value;
+            try {
+                const response = await fetch('/admin/users/role', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: selectedUserId,
+                        newRoleName: newRole
+                    })
+                });
+                
+                if (response.ok) {
+                    closeModal('role-modal');
+                    loadUsers(currentUsersPage);
+                    alert('Cập nhật vai trò thành công!');
+                } else {
+                    alert('Lỗi: Không thể cập nhật vai trò');
+                }
+            } catch (error) {
+                console.error('Error updating role:', error);
+                alert('Lỗi: Không thể cập nhật vai trò');
+            }
+        }
+
+        async function toggleLock(userId, lock) {
+            const action = lock ? 'khóa' : 'mở khóa';
+            if (!confirm(`Bạn có chắc muốn ${action} tài khoản này?`)) return;
+            
+            try {
+                const response = await fetch('/admin/users/lock', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, lock })
+                });
+                
+                if (response.ok) {
+                    loadUsers(currentUsersPage);
+                    alert(`${action.charAt(0).toUpperCase() + action.slice(1)} tài khoản thành công!`);
+                } else {
+                    alert(`Lỗi: Không thể ${action} tài khoản`);
+                }
+            } catch (error) {
+                console.error('Error toggling lock:', error);
+                alert(`Lỗi: Không thể ${action} tài khoản`);
+            }
+        }
+
+        // Order management functions
+        async function viewOrderDetails(orderId) {
+            openModal('order-modal');
+            document.getElementById('order-details').innerHTML = '<div class="loading">Đang tải...</div>';
+            
+            try {
+                const response = await fetch(`/admin/orders/${orderId}`);
+                if (!response.ok) throw new Error('Failed to load order details');
+                const order = await response.json();
+                
+                const detailsDiv = document.getElementById('order-details');
+                detailsDiv.innerHTML = '';
+                
+                // Create elements programmatically for safety
+                const fields = [
+                    { label: 'Mã đơn hàng:', value: order.orderId },
+                    { label: 'Người dùng:', value: order.username },
+                    { label: 'Sản phẩm:', value: order.productName },
+                    { label: 'Ngày thanh toán:', value: order.paidDate || 'Chưa thanh toán' }
+                ];
+                
+                fields.forEach(field => {
+                    const group = document.createElement('div');
+                    group.className = 'form-group';
+                    const label = document.createElement('label');
+                    label.textContent = field.label;
+                    const value = document.createElement('div');
+                    value.textContent = field.value;
+                    group.appendChild(label);
+                    group.appendChild(value);
+                    detailsDiv.appendChild(group);
+                });
+                
+                // Status field with badge
+                const statusGroup = document.createElement('div');
+                statusGroup.className = 'form-group';
+                const statusLabel = document.createElement('label');
+                statusLabel.textContent = 'Trạng thái:';
+                const statusValue = document.createElement('div');
+                statusValue.innerHTML = `<span class="badge ${getStatusBadge(order.status)}">${getStatusText(order.status)}</span>`;
+                statusGroup.appendChild(statusLabel);
+                statusGroup.appendChild(statusValue);
+                detailsDiv.appendChild(statusGroup);
+                
+                // License info if exists
+                if (order.license) {
+                    const licenseGroup = document.createElement('div');
+                    licenseGroup.className = 'form-group';
+                    const licenseLabel = document.createElement('label');
+                    licenseLabel.textContent = 'Giấy phép:';
+                    const licenseValue = document.createElement('div');
+                    
+                    const keyDiv = document.createElement('div');
+                    const keyStrong = document.createElement('strong');
+                    keyStrong.textContent = 'Key: ';
+                    const keyCode = document.createElement('code');
+                    keyCode.textContent = order.license.licenseKey;
+                    keyDiv.appendChild(keyStrong);
+                    keyDiv.appendChild(keyCode);
+                    
+                    const statusDiv = document.createElement('div');
+                    const statusStrong = document.createElement('strong');
+                    statusStrong.textContent = 'Trạng thái: ';
+                    statusDiv.appendChild(statusStrong);
+                    statusDiv.innerHTML += `<span class="badge ${order.license.enabled ? 'badge-success' : 'badge-danger'}">
+                        ${order.license.enabled ? 'Hoạt động' : 'Bị thu hồi'}
+                    </span>`;
+                    
+                    licenseValue.appendChild(keyDiv);
+                    licenseValue.appendChild(statusDiv);
+                    licenseGroup.appendChild(licenseLabel);
+                    licenseGroup.appendChild(licenseValue);
+                    detailsDiv.appendChild(licenseGroup);
+                } else {
+                    const noLicenseGroup = document.createElement('div');
+                    noLicenseGroup.className = 'form-group';
+                    const em = document.createElement('em');
+                    em.textContent = 'Chưa có giấy phép';
+                    noLicenseGroup.appendChild(em);
+                    detailsDiv.appendChild(noLicenseGroup);
+                }
+            } catch (error) {
+                console.error('Error loading order details:', error);
+                document.getElementById('order-details').innerHTML = '<div class="error">Không thể tải chi tiết đơn hàng</div>';
+            }
+        }
+
+        // License management functions
+        function openRevoke(licenseKey) {
+            selectedLicenseKey = licenseKey;
+            document.getElementById('revoke-key').value = licenseKey;
+            document.getElementById('revoke-reason').value = '';
+            openModal('revoke-modal');
+        }
+
+        async function revokeLicense() {
+            const reason = document.getElementById('revoke-reason').value;
+            if (!reason.trim()) {
+                alert('Vui lòng nhập lý do thu hồi');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/admin/licenses/revoke', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        licenseKey: selectedLicenseKey,
+                        reason: reason
+                    })
+                });
+                
+                if (response.ok) {
+                    closeModal('revoke-modal');
+                    loadLicenses(currentLicensesPage, document.getElementById('license-search').value);
+                    alert('Thu hồi giấy phép thành công!');
+                } else {
+                    alert('Lỗi: Không thể thu hồi giấy phép');
+                }
+            } catch (error) {
+                console.error('Error revoking license:', error);
+                alert('Lỗi: Không thể thu hồi giấy phép');
+            }
+        }
+
+        async function resetDevice(licenseKey) {
+            if (!confirm('Bạn có chắc muốn reset thiết bị cho giấy phép này?')) return;
+            
+            try {
+                const response = await fetch('/admin/licenses/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ licenseKey })
+                });
+                
+                if (response.ok) {
+                    alert('Reset thiết bị thành công!');
+                } else {
+                    alert('Lỗi: Không thể reset thiết bị');
+                }
+            } catch (error) {
+                console.error('Error resetting device:', error);
+                alert('Lỗi: Không thể reset thiết bị');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+        });
+    </script>
 </body>
 </html>
