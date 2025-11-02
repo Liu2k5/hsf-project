@@ -25,4 +25,6 @@ public class Users {
     @ManyToOne(fetch= FetchType.EAGER)
     @JoinColumn(name="roleId")
     private Role role;
+
+    private boolean locked = false;
 }

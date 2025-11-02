@@ -31,4 +31,6 @@ public class Orders {
     private Product product;
     
     private String paidDate;
+
+    private String status = "PENDING";
 }
