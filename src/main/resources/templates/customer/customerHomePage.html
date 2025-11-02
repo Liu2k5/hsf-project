@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang khách hàng</title>
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            background: #f8f9fa;
+            padding: 40px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #b02a37;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: white;
+            margin-bottom: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Trang khách hàng</h1>
+    <form th:action="@{/logout}" method="post">
+        <button type="submit">Đăng xuất</button>
+    </form>
+</header>
+
+<section>
+    <h2>Xin chào, <span th:text="${customerName != null ? customerName : 'Guest'}">User</span>!</h2>
+    <h3>Danh sách sản phẩm</h3>
+    <ul>
+        <li th:each="product : ${products}">
+            <span th:text="${product.productName}">Tên sản phẩm</span> -
+            <span th:text="${product.price}">Giá sản phẩm</span>
+        </li>
+    </ul>
+</section>
+</body>
+</html>

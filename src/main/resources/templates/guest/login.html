@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập</title>
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            background: #f8f9fa;
+            padding: 40px;
+        }
+        .login-container {
+            background: white;
+            width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Đăng nhập</h2>
+
+    <!-- Form login -->
+    <form th:action="@{/process-login}" method="post">
+        <div>
+            <label>Tên đăng nhập:</label>
+            <input type="text" name="username" required>
+        </div>
+        <div>
+            <label>Mật khẩu:</label>
+            <input type="password" name="password" required>
+        </div>
+        <button type="submit">Đăng nhập</button>
+    </form>
+
+    <div th:if="${param.error}">
+        <p style="color: red;">Sai tên đăng nhập hoặc mật khẩu!</p>
+    </div>
+    <div th:if="${param.logout}">
+        <p style="color: green;">Đăng xuất thành công!</p>
+    </div>
+
+    <p style="text-align:center; margin-top:15px;">
+        Don’t have an account? <a th:href="@{/guest/signup}">Sign up</a>
+    </p>
+</div>
+
+</body>
+</html>
