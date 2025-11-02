@@ -30,9 +30,7 @@ public class AdminUserController {
         List<Users> users;
         
         if (roleId != null) {
-            users = userRepository.findAll().stream()
-                    .filter(user -> user.getRole() != null && roleId.equals(user.getRole().getRoleId()))
-                    .toList();
+            users = userRepository.findByRole_RoleId(roleId);
         } else {
             users = userRepository.findAll();
         }

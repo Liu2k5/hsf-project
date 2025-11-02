@@ -19,26 +19,24 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin")
 public class AdminController {
 
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    
     private final OrderRepository orderRepository;
     
     @RequestMapping("")
     public String adminHome(Model model) {
-        // Get all completed orders
-        List<Orders> completedOrders = orderRepository.findAll().stream()
-                .filter(order -> OrderStatus.COMPLETED.equals(order.getStatus()))
-                .toList();
+        // Get all completed orders from database
+        List<Orders> completedOrders = orderRepository.findByStatus(OrderStatus.COMPLETED);
         
         LocalDate today = LocalDate.now();
         int currentYear = today.getYear();
         int currentMonth = today.getMonthValue();
         
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        
         // Calculate revenue for today
         double dailyRevenue = completedOrders.stream()
                 .filter(order -> {
                     try {
-                        LocalDate orderDate = LocalDate.parse(order.getPaidDate(), formatter);
+                        LocalDate orderDate = LocalDate.parse(order.getPaidDate(), DATE_FORMATTER);
                         return orderDate.equals(today);
                     } catch (Exception e) {
                         return false;
@@ -51,7 +49,7 @@ public class AdminController {
         double monthlyRevenue = completedOrders.stream()
                 .filter(order -> {
                     try {
-                        LocalDate orderDate = LocalDate.parse(order.getPaidDate(), formatter);
+                        LocalDate orderDate = LocalDate.parse(order.getPaidDate(), DATE_FORMATTER);
                         return orderDate.getYear() == currentYear && orderDate.getMonthValue() == currentMonth;
                     } catch (Exception e) {
                         return false;
@@ -64,7 +62,7 @@ public class AdminController {
         double yearlyRevenue = completedOrders.stream()
                 .filter(order -> {
                     try {
-                        LocalDate orderDate = LocalDate.parse(order.getPaidDate(), formatter);
+                        LocalDate orderDate = LocalDate.parse(order.getPaidDate(), DATE_FORMATTER);
                         return orderDate.getYear() == currentYear;
                     } catch (Exception e) {
                         return false;

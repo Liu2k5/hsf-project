@@ -28,9 +28,7 @@ public class AdminOrderController {
         List<Orders> orders;
         
         if (status != null) {
-            orders = orderRepository.findAll().stream()
-                    .filter(order -> status.equals(order.getStatus()))
-                    .toList();
+            orders = orderRepository.findByStatus(status);
         } else {
             orders = orderRepository.findAll();
         }
