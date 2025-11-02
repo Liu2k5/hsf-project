@@ -11,7 +11,6 @@ import com.hsf.hsf_project.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,17 +21,15 @@ public class DashboardService {
     private final ActiveLicenseSessionRepository sessionRepository;
 
     public StatsSummaryDTO getStatsSummary() {
-        // Calculate total revenue from completed orders
-        double totalRevenue = orderRepository.findAll().stream()
-                .filter(order -> "COMPLETED".equals(order.getStatus()))
-                .mapToDouble(order -> order.getProduct() != null ? order.getProduct().getPrice() : 0.0)
-                .sum();
+        // Calculate total revenue from completed orders using optimized query
+        Double totalRevenue = orderRepository.calculateTotalRevenue();
+        if (totalRevenue == null) {
+            totalRevenue = 0.0;
+        }
 
-        // Count new orders today
+        // Count new orders today using optimized query
         String today = LocalDate.now().toString();
-        long newOrdersToday = orderRepository.findAll().stream()
-                .filter(order -> order.getPaidDate() != null && order.getPaidDate().startsWith(today))
-                .count();
+        Long newOrdersToday = orderRepository.countOrdersByDate(today + "%");
 
         // Count active sessions
         long activeSessions = sessionRepository.count();
@@ -41,9 +38,8 @@ public class DashboardService {
     }
 
     public List<RevenueByDayDTO> getRevenueChartData() {
-        // Get orders and group by date, calculating revenue per day
-        return orderRepository.findAll().stream()
-                .filter(order -> "COMPLETED".equals(order.getStatus()) && order.getPaidDate() != null)
+        // Get completed orders with paid date using optimized query
+        return orderRepository.findCompletedOrdersWithPaidDate().stream()
                 .collect(Collectors.groupingBy(
                         order -> {
                             try {
@@ -62,9 +58,8 @@ public class DashboardService {
     }
 
     public List<TopProductDTO> getTopProducts() {
-        // Group by product and count sales
-        return orderRepository.findAll().stream()
-                .filter(order -> order.getProduct() != null)
+        // Get orders with products using optimized query
+        return orderRepository.findAllWithProduct().stream()
                 .collect(Collectors.groupingBy(
                         order -> order.getProduct().getProductName(),
                         Collectors.counting()

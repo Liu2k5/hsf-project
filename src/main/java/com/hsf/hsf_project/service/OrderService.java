@@ -64,19 +64,16 @@ public class OrderService {
         dto.setPaidDate(order.getPaidDate());
         dto.setStatus(order.getStatus());
 
-        // Find license for this order
-        licenseRepository.findAll().stream()
-                .filter(license -> license.getOrder() != null && license.getOrder().getOrderId().equals(orderId))
-                .findFirst()
-                .ifPresent(license -> {
-                    LicenseDTO licenseDTO = new LicenseDTO();
-                    licenseDTO.setLicenseId(license.getLicenseId());
-                    licenseDTO.setLicenseKey(license.getLicenseKey());
-                    licenseDTO.setUsername(order.getUser() != null ? order.getUser().getUsername() : null);
-                    licenseDTO.setProductName(order.getProduct() != null ? order.getProduct().getProductName() : null);
-                    licenseDTO.setEnabled(license.isEnabled());
-                    dto.setLicense(licenseDTO);
-                });
+        // Find license for this order using repository method
+        licenseRepository.findByOrder(order).ifPresent(license -> {
+            LicenseDTO licenseDTO = new LicenseDTO();
+            licenseDTO.setLicenseId(license.getLicenseId());
+            licenseDTO.setLicenseKey(license.getLicenseKey());
+            licenseDTO.setUsername(order.getUser() != null ? order.getUser().getUsername() : null);
+            licenseDTO.setProductName(order.getProduct() != null ? order.getProduct().getProductName() : null);
+            licenseDTO.setEnabled(license.isEnabled());
+            dto.setLicense(licenseDTO);
+        });
 
         return dto;
     }

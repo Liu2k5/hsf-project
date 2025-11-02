@@ -7,9 +7,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import com.hsf.hsf_project.entity.License;
+import com.hsf.hsf_project.entity.Orders;
 
 @Repository
 public interface LicenseRepository extends JpaRepository<License, Long>, JpaSpecificationExecutor<License> {
 
     Optional<License> findByLicenseKey(String licenseKey);
+    
+    Optional<License> findByOrder(Orders order);
 }

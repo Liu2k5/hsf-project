@@ -250,14 +250,27 @@ Added field:
 
 ## Services Created
 
-1. **OrderService** - Handles order management logic
-2. **LicenseService** - Handles license search and filtering
-3. **DashboardService** - Handles statistics and analytics
+1. **OrderService** - Handles order management logic with optimized queries
+2. **LicenseService** - Handles license search and filtering with JPA Specifications
+3. **DashboardService** - Handles statistics and analytics with database-level aggregations
 
 ## Services Updated
 
 1. **UserService** - Added user management methods (pagination, role update, lock toggle)
 2. **LicenseSessionService** - Added resetDevice method
+
+## Repository Enhancements
+
+### OrderRepository
+Added custom queries for performance optimization:
+- `calculateTotalRevenue()` - Calculates total revenue at database level
+- `countOrdersByDate()` - Counts orders by date efficiently
+- `findCompletedOrdersWithPaidDate()` - Fetches only completed orders with dates
+- `findAllWithProduct()` - Fetches only orders with associated products
+
+### LicenseRepository
+Added method:
+- `findByOrder()` - Finds license by order efficiently without loading all licenses
 
 ---
 
