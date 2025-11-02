@@ -4,11 +4,13 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.hsf.hsf_project.entity.ActiveLicenseSession;
 import com.hsf.hsf_project.entity.License;
 import com.hsf.hsf_project.entity.Orders;
 import com.hsf.hsf_project.entity.Product;
 import com.hsf.hsf_project.entity.Role;
 import com.hsf.hsf_project.entity.Users;
+import com.hsf.hsf_project.repository.ActiveLicenseSessionRepository;
 import com.hsf.hsf_project.repository.LicenseRepository;
 import com.hsf.hsf_project.repository.OrderRepository;
 import com.hsf.hsf_project.repository.ProductRepository;
@@ -26,6 +28,7 @@ public class Initialisation implements CommandLineRunner {
     private final LicenseRepository licenseRepository;
     private final PasswordEncoder passwordEncoder;
     private final OrderRepository orderRepository;
+    private final ActiveLicenseSessionRepository activeLicenseSessionRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -41,7 +44,21 @@ public class Initialisation implements CommandLineRunner {
         if (licenseRepository.findAll().isEmpty()) {
             initialiseLicenses();
         }
+        if (activeLicenseSessionRepository.findAll().isEmpty()) {
+            initialiseActiveLicenseSessions();
+        }
+    }
 
+    private void initialiseActiveLicenseSessions() {
+        ActiveLicenseSession session1 = new ActiveLicenseSession();
+        License license1 = licenseRepository.findByLicenseKey("LICENSE-001")
+                .orElseThrow(() -> new RuntimeException("License not found"));
+        session1.setLicense(license1);
+        session1.setLicenseKey(license1.getLicenseKey());
+        session1.setDeviceId("DEVICE-001");
+        session1.setStartedAt(java.time.LocalDateTime.now());
+        session1.setLastHeartbeat(java.time.LocalDateTime.now());
+        activeLicenseSessionRepository.save(session1);
     }
 
     private void initialiseOrders() {
@@ -99,12 +116,14 @@ public class Initialisation implements CommandLineRunner {
         Users user1 = new Users();
         user1.setUsername("admin");
         user1.setPassword(passwordEncoder.encode("admin"));
+        user1.setEmail("manager@shop.com");
         user1.setRole(roleRepository.findByRoleName("admin"));
         userRepository.save(user1);
 
         Users user2 = new Users();
         user2.setUsername("customer");
         user2.setPassword(passwordEncoder.encode("customer"));
+        user2.setEmail("customer@shop.com");
         user2.setRole(roleRepository.findByRoleName("customer"));
         userRepository.save(user2);
     }

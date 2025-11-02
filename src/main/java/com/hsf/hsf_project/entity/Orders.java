@@ -32,5 +32,5 @@ public class Orders {
     
     private String paidDate;
 
-    private String status = "PENDING";
+    private String paymentLink;
 }

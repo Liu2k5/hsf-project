@@ -50,7 +50,7 @@ public class AdminController {
 
     @RequestMapping("")
     public String adminHome() {
-        return "/admin/homepage";
+        return "admin/adminHomePage";
     }
 
     // User Management APIs
