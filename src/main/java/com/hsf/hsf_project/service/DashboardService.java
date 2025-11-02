@@ -40,6 +40,7 @@ public class DashboardService {
     public List<RevenueByDayDTO> getRevenueChartData() {
         // Get completed orders with paid date using optimized query
         return orderRepository.findCompletedOrdersWithPaidDate().stream()
+                .filter(order -> order.getPaidDate() != null && order.getPaidDate().length() >= 10)
                 .collect(Collectors.groupingBy(
                         order -> {
                             try {
@@ -60,6 +61,7 @@ public class DashboardService {
     public List<TopProductDTO> getTopProducts() {
         // Get orders with products using optimized query
         return orderRepository.findAllWithProduct().stream()
+                .filter(order -> order.getProduct() != null)
                 .collect(Collectors.groupingBy(
                         order -> order.getProduct().getProductName(),
                         Collectors.counting()
