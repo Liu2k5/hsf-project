@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .filter-form {
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 5px 10px;
+            margin: 2px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        .btn-warning {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+        }
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+            border: none;
+        }
+        .status-locked {
+            color: red;
+            font-weight: bold;
+        }
+        .status-active {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>User Management</h1>
+    
+    <a href="/admin" class="btn btn-primary">Back to Dashboard</a>
+    
+    <div class="filter-form">
+        <form method="get" action="/admin/users">
+            <label for="roleId">Filter by Role:</label>
+            <select name="roleId" id="roleId" onchange="this.form.submit()">
+                <option value="">All Roles</option>
+                <option th:each="role : ${roles}" 
+                        th:value="${role.roleId}" 
+                        th:text="${role.roleName}"
+                        th:selected="${role.roleId == selectedRoleId}"></option>
+            </select>
+            <a href="/admin/users" class="btn">Clear Filter</a>
+        </form>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.userId}"></td>
+                <td th:text="${user.username}"></td>
+                <td th:text="${user.role?.roleName}"></td>
+                <td>
+                    <span th:class="${user.locked} ? 'status-locked' : 'status-active'" 
+                          th:text="${user.locked} ? 'Locked' : 'Active'"></span>
+                </td>
+                <td>
+                    <form th:action="@{/admin/users/{id}/update-role(id=${user.userId})}" method="post" style="display:inline;">
+                        <select name="roleId" required>
+                            <option th:each="role : ${roles}" 
+                                    th:value="${role.roleId}" 
+                                    th:text="${role.roleName}"
+                                    th:selected="${role.roleId == user.role?.roleId}"></option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Update Role</button>
+                    </form>
+                    <form th:action="@{/admin/users/{id}/toggle-lock(id=${user.userId})}" method="post" style="display:inline;">
+                        <button type="submit" 
+                                th:class="${user.locked} ? 'btn btn-primary' : 'btn btn-danger'"
+                                th:text="${user.locked} ? 'Unlock' : 'Lock'"></button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

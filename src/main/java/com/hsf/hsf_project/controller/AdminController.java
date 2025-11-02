@@ -1,7 +1,16 @@
 package com.hsf.hsf_project.controller;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.hsf.hsf_project.entity.Orders;
+import com.hsf.hsf_project.entity.enums.OrderStatus;
+import com.hsf.hsf_project.repository.OrderRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -10,9 +19,64 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin")
 public class AdminController {
 
+    private final OrderRepository orderRepository;
     
     @RequestMapping("")
-    public String adminHome() {
+    public String adminHome(Model model) {
+        // Get all completed orders
+        List<Orders> completedOrders = orderRepository.findAll().stream()
+                .filter(order -> OrderStatus.COMPLETED.equals(order.getStatus()))
+                .toList();
+        
+        LocalDate today = LocalDate.now();
+        int currentYear = today.getYear();
+        int currentMonth = today.getMonthValue();
+        
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        // Calculate revenue for today
+        double dailyRevenue = completedOrders.stream()
+                .filter(order -> {
+                    try {
+                        LocalDate orderDate = LocalDate.parse(order.getPaidDate(), formatter);
+                        return orderDate.equals(today);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .mapToDouble(order -> order.getProduct().getPrice())
+                .sum();
+        
+        // Calculate revenue for current month
+        double monthlyRevenue = completedOrders.stream()
+                .filter(order -> {
+                    try {
+                        LocalDate orderDate = LocalDate.parse(order.getPaidDate(), formatter);
+                        return orderDate.getYear() == currentYear && orderDate.getMonthValue() == currentMonth;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .mapToDouble(order -> order.getProduct().getPrice())
+                .sum();
+        
+        // Calculate revenue for current year
+        double yearlyRevenue = completedOrders.stream()
+                .filter(order -> {
+                    try {
+                        LocalDate orderDate = LocalDate.parse(order.getPaidDate(), formatter);
+                        return orderDate.getYear() == currentYear;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .mapToDouble(order -> order.getProduct().getPrice())
+                .sum();
+        
+        model.addAttribute("dailyRevenue", dailyRevenue);
+        model.addAttribute("monthlyRevenue", monthlyRevenue);
+        model.addAttribute("yearlyRevenue", yearlyRevenue);
+        
         return "/admin/homepage";
     }
 }

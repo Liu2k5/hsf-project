@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active License Sessions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn {
+            padding: 5px 10px;
+            margin: 2px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Active License Sessions</h1>
+    
+    <a href="/admin/licenses" class="btn btn-primary">Back to Licenses</a>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Session ID</th>
+                <th>License Key</th>
+                <th>Device ID</th>
+                <th>Started At</th>
+                <th>Last Heartbeat</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="session : ${sessions}">
+                <td th:text="${session.id}"></td>
+                <td th:text="${session.licenseKey}"></td>
+                <td th:text="${session.deviceId}"></td>
+                <td th:text="${session.startedAt}"></td>
+                <td th:text="${session.lastHeartbeat}"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

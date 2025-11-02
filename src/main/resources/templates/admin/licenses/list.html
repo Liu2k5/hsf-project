@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>License Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .filter-form {
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 5px 10px;
+            margin: 2px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        .btn-warning {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+        }
+        .status-enabled {
+            color: green;
+            font-weight: bold;
+        }
+        .status-disabled {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>License Management</h1>
+    
+    <a href="/admin" class="btn btn-primary">Back to Dashboard</a>
+    <a href="/admin/licenses/sessions" class="btn btn-primary">View Active Sessions</a>
+    
+    <div class="filter-form">
+        <form method="get" action="/admin/licenses">
+            <label>Filter by:</label>
+            <input type="number" name="userId" th:value="${userId}" placeholder="User ID" />
+            <input type="number" name="orderId" th:value="${orderId}" placeholder="Order ID" />
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="/admin/licenses" class="btn">Clear Filter</a>
+        </form>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>License ID</th>
+                <th>License Key</th>
+                <th>Order ID</th>
+                <th>User</th>
+                <th>Product</th>
+                <th>Enabled</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="license : ${licenses}">
+                <td th:text="${license.licenseId}"></td>
+                <td th:text="${license.licenseKey}"></td>
+                <td th:text="${license.order?.orderId}"></td>
+                <td th:text="${license.order?.user?.username}"></td>
+                <td th:text="${license.order?.product?.productName}"></td>
+                <td>
+                    <span th:class="${license.enabled} ? 'status-enabled' : 'status-disabled'" 
+                          th:text="${license.enabled} ? 'Enabled' : 'Disabled'"></span>
+                </td>
+                <td>
+                    <form th:action="@{/admin/licenses/{id}/toggle-enable(id=${license.licenseId})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-warning" 
+                                th:text="${license.enabled} ? 'Disable' : 'Enable'"></button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

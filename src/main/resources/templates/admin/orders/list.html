@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .filter-form {
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 5px 10px;
+            margin: 2px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .status-PENDING { background-color: #ffc107; }
+        .status-COMPLETED { background-color: #28a745; color: white; }
+        .status-FAILED { background-color: #dc3545; color: white; }
+        .status-CANCELLED { background-color: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Order Management</h1>
+    
+    <a href="/admin" class="btn btn-primary">Back to Dashboard</a>
+    
+    <div class="filter-form">
+        <form method="get" action="/admin/orders">
+            <label for="status">Filter by Status:</label>
+            <select name="status" id="status" onchange="this.form.submit()">
+                <option value="">All Orders</option>
+                <option th:each="status : ${orderStatuses}" 
+                        th:value="${status}" 
+                        th:text="${status}"
+                        th:selected="${status == selectedStatus}"></option>
+            </select>
+            <a href="/admin/orders" class="btn">Clear Filter</a>
+        </form>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>User</th>
+                <th>Product</th>
+                <th>Paid Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="order : ${orders}">
+                <td th:text="${order.orderId}"></td>
+                <td th:text="${order.user?.username}"></td>
+                <td th:text="${order.product?.productName}"></td>
+                <td th:text="${order.paidDate}"></td>
+                <td>
+                    <span th:class="'status-badge status-' + ${order.status}" th:text="${order.status}"></span>
+                </td>
+                <td>
+                    <a th:href="@{/admin/orders/{id}(id=${order.orderId})}" class="btn btn-primary">View Details</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
