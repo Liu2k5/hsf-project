@@ -7,212 +7,212 @@
     <th:block th:replace="~{admin/fragments/styles :: styles}"></th:block>
 </head>
 <body>
-    <div th:replace="~{admin/fragments/header :: header}"></div>
+<div th:replace="~{admin/fragments/header :: header}"></div>
 
-    <div class="container">
-        <!-- Navigation Tabs -->
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="switchTab('dashboard', event)">📊 Tổng quan</button>
-            <button class="nav-tab" onclick="switchTab('users', event)">👥 Người dùng</button>
-            <button class="nav-tab" onclick="switchTab('orders', event)">📦 Đơn hàng</button>
-            <button class="nav-tab" onclick="switchTab('licenses', event)">🔑 Giấy phép</button>
-        </div>
+<div class="container">
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('dashboard', event)">📊 Tổng quan</button>
+        <button class="nav-tab" onclick="switchTab('users', event)">👥 Người dùng</button>
+        <button class="nav-tab" onclick="switchTab('orders', event)">📦 Đơn hàng</button>
+        <button class="nav-tab" onclick="switchTab('licenses', event)">🔑 Giấy phép</button>
+    </div>
 
-        <!-- Dashboard Tab -->
-        <div id="dashboard-tab" class="tab-content active">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Tổng doanh thu</h3>
-                    <div class="value" id="total-revenue">₫0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Đơn hàng mới hôm nay</h3>
-                    <div class="value" id="new-orders-today">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Phiên hoạt động</h3>
-                    <div class="value" id="active-sessions">0</div>
-                </div>
+    <!-- Dashboard Tab -->
+    <div id="dashboard-tab" class="tab-content active">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Tổng doanh thu</h3>
+                <div class="value" id="total-revenue">₫0</div>
             </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h2>📈 Biểu đồ doanh thu</h2>
-                </div>
-                <div class="chart-container">
-                    <canvas id="revenue-chart"></canvas>
-                </div>
+            <div class="stat-card">
+                <h3>Đơn hàng mới hôm nay</h3>
+                <div class="value" id="new-orders-today">0</div>
             </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h2>🏆 Sản phẩm bán chạy</h2>
-                </div>
-                <ul class="products-list" id="top-products">
-                    <li class="loading">Đang tải...</li>
-                </ul>
+            <div class="stat-card">
+                <h3>Phiên hoạt động</h3>
+                <div class="value" id="active-sessions">0</div>
             </div>
         </div>
 
-        <!-- Users Tab -->
-        <div id="users-tab" class="tab-content">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Quản lý người dùng</h2>
-                </div>
-                <div id="users-error" class="error" style="display: none;"></div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tên đăng nhập</th>
-                            <th>Vai trò</th>
-                            <th>Trạng thái</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="users-table">
-                        <tr>
-                            <td colspan="5" class="loading">Đang tải...</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="pagination" id="users-pagination"></div>
+        <div class="card">
+            <div class="card-header">
+                <h2>📈 Biểu đồ doanh thu</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="revenue-chart"></canvas>
             </div>
         </div>
 
-        <!-- Orders Tab -->
-        <div id="orders-tab" class="tab-content">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Quản lý đơn hàng</h2>
-                </div>
-                <div class="filter-group">
-                    <select id="order-status-filter" class="select-input" onchange="loadOrders(0)">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="PENDING">Đang chờ</option>
-                        <option value="COMPLETED">Hoàn thành</option>
-                        <option value="CANCELLED">Đã hủy</option>
-                    </select>
-                    <input type="date" id="order-date-filter" class="select-input" onchange="loadOrders(0)">
-                </div>
-                <div id="orders-error" class="error" style="display: none;"></div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Người dùng</th>
-                            <th>Sản phẩm</th>
-                            <th>Ngày thanh toán</th>
-                            <th>Trạng thái</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="orders-table">
-                        <tr>
-                            <td colspan="6" class="loading">Đang tải...</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="pagination" id="orders-pagination"></div>
+        <div class="card">
+            <div class="card-header">
+                <h2>🏆 Sản phẩm bán chạy</h2>
             </div>
-        </div>
-
-        <!-- Licenses Tab -->
-        <div id="licenses-tab" class="tab-content">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Quản lý giấy phép</h2>
-                    <input type="text" id="license-search" class="search-input" 
-                           placeholder="Tìm kiếm theo key, người dùng hoặc sản phẩm..." 
-                           onkeyup="searchLicenses()">
-                </div>
-                <div id="licenses-error" class="error" style="display: none;"></div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>License Key</th>
-                            <th>Người dùng</th>
-                            <th>Sản phẩm</th>
-                            <th>Trạng thái</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="licenses-table">
-                        <tr>
-                            <td colspan="6" class="loading">Đang tải...</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="pagination" id="licenses-pagination"></div>
-            </div>
+            <ul class="products-list" id="top-products">
+                <li class="loading">Đang tải...</li>
+            </ul>
         </div>
     </div>
 
-    <!-- Update Role Modal -->
-    <div id="role-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Cập nhật vai trò</h3>
+    <!-- Users Tab -->
+    <div id="users-tab" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+                <h2>Quản lý người dùng</h2>
             </div>
-            <div class="form-group">
-                <label>Tên đăng nhập:</label>
-                <input type="text" id="role-username" class="form-control" readonly>
+            <div id="users-error" class="error" style="display: none;"></div>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên đăng nhập</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="users-table">
+                <tr>
+                    <td colspan="5" class="loading">Đang tải...</td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="pagination" id="users-pagination"></div>
+        </div>
+    </div>
+
+    <!-- Orders Tab -->
+    <div id="orders-tab" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+                <h2>Quản lý đơn hàng</h2>
             </div>
-            <div class="form-group">
-                <label>Vai trò mới:</label>
-                <select id="role-select" class="form-control">
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
+            <div class="filter-group">
+                <select id="order-status-filter" class="select-input" onchange="loadOrders(0)">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="PENDING">Đang chờ</option>
+                    <option value="COMPLETED">Hoàn thành</option>
+                    <option value="CANCELLED">Đã hủy</option>
                 </select>
+                <input type="date" id="order-date-filter" class="select-input" onchange="loadOrders(0)">
             </div>
-            <div class="modal-actions">
-                <button class="btn" onclick="closeModal('role-modal')">Hủy</button>
-                <button class="btn btn-primary" onclick="updateRole()">Cập nhật</button>
-            </div>
+            <div id="orders-error" class="error" style="display: none;"></div>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Người dùng</th>
+                    <th>Sản phẩm</th>
+                    <th>Ngày thanh toán</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="orders-table">
+                <tr>
+                    <td colspan="6" class="loading">Đang tải...</td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="pagination" id="orders-pagination"></div>
         </div>
     </div>
 
-    <!-- Revoke License Modal -->
-    <div id="revoke-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Thu hồi giấy phép</h3>
+    <!-- Licenses Tab -->
+    <div id="licenses-tab" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+                <h2>Quản lý giấy phép</h2>
+                <input type="text" id="license-search" class="search-input"
+                       placeholder="Tìm kiếm theo key, người dùng hoặc sản phẩm..."
+                       onkeyup="searchLicenses()">
             </div>
-            <div class="form-group">
-                <label>License Key:</label>
-                <input type="text" id="revoke-key" class="form-control" readonly>
-            </div>
-            <div class="form-group">
-                <label>Lý do thu hồi:</label>
-                <textarea id="revoke-reason" class="form-control" rows="3" 
-                          placeholder="Nhập lý do thu hồi..."></textarea>
-            </div>
-            <div class="modal-actions">
-                <button class="btn" onclick="closeModal('revoke-modal')">Hủy</button>
-                <button class="btn btn-danger" onclick="revokeLicense()">Thu hồi</button>
-            </div>
+            <div id="licenses-error" class="error" style="display: none;"></div>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>License Key</th>
+                    <th>Người dùng</th>
+                    <th>Sản phẩm</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="licenses-table">
+                <tr>
+                    <td colspan="6" class="loading">Đang tải...</td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="pagination" id="licenses-pagination"></div>
         </div>
     </div>
+</div>
 
-    <!-- Order Details Modal -->
-    <div id="order-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Chi tiết đơn hàng</h3>
-            </div>
-            <div id="order-details">
-                <div class="loading">Đang tải...</div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn" onclick="closeModal('order-modal')">Đóng</button>
-            </div>
+<!-- Update Role Modal -->
+<div id="role-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Cập nhật vai trò</h3>
+        </div>
+        <div class="form-group">
+            <label>Tên đăng nhập:</label>
+            <input type="text" id="role-username" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+            <label>Vai trò mới:</label>
+            <select id="role-select" class="form-control">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn" onclick="closeModal('role-modal')">Hủy</button>
+            <button class="btn btn-primary" onclick="updateRole()">Cập nhật</button>
         </div>
     </div>
+</div>
 
-    <div th:replace="~{admin/fragments/footer :: footer}"></div>
+<!-- Revoke License Modal -->
+<div id="revoke-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Thu hồi giấy phép</h3>
+        </div>
+        <div class="form-group">
+            <label>License Key:</label>
+            <input type="text" id="revoke-key" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+            <label>Lý do thu hồi:</label>
+            <textarea id="revoke-reason" class="form-control" rows="3"
+                      placeholder="Nhập lý do thu hồi..."></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="btn" onclick="closeModal('revoke-modal')">Hủy</button>
+            <button class="btn btn-danger" onclick="revokeLicense()">Thu hồi</button>
+        </div>
+    </div>
+</div>
 
-    <th:block th:replace="~{admin/fragments/scripts :: scripts}"></th:block>
+<!-- Order Details Modal -->
+<div id="order-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Chi tiết đơn hàng</h3>
+        </div>
+        <div id="order-details">
+            <div class="loading">Đang tải...</div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn" onclick="closeModal('order-modal')">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{admin/fragments/footer :: footer}"></div>
+
+<th:block th:replace="~{admin/fragments/scripts :: scripts}"></th:block>
 </body>
 </html>

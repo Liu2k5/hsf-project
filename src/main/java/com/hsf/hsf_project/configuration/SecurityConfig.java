@@ -25,7 +25,7 @@ public class SecurityConfig {
             .requestMatchers(resourceUrls).permitAll()
                 .requestMatchers(guestPages).permitAll()
                 .requestMatchers(customerPages).hasAuthority("customer")
-                .requestMatchers(adminPages).hasAuthority("admin")
+                .requestMatchers(adminPages).hasRole("admin")
                 .anyRequest().authenticated()
             )
             // .formLogin(Customizer.withDefaults())
