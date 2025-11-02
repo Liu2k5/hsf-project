@@ -100,6 +100,13 @@ public class LicenseSessionService {
         });
     }
 
+    @Transactional
+    public void resetDevice(String licenseKey) {
+        sessionRepo.findByLicenseKey(licenseKey).ifPresent(session -> {
+            sessionRepo.delete(session);
+        });
+    }
+
     // cleanup method invoked by scheduler
     @Transactional
     public void cleanupStaleSessions(LocalDateTime cutoff) {
