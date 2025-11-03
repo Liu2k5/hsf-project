@@ -25,6 +25,7 @@ import java.util.List;
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final LicenseRepository licenseRepository;
 
     public Orders getOrderById(Long orderId) {
         return orderRepository.findById(orderId)

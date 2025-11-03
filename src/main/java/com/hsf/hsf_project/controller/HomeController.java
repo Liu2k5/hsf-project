@@ -27,7 +27,7 @@ public class HomeController {
             return "redirect:/access-denied";
         }
 
-        return "admin/adminHomePage";
+        return "homepage";
     }
 
     // Trang customer
