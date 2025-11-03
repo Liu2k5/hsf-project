@@ -11,12 +11,12 @@ import com.hsf.hsf_project.service.LicenseSessionService;
 @Component
 public class SessionCleanupTask {
     private final LicenseSessionService service;
-    @Value("${app.session.timeout-minutes:5}")
+    @Value("${app.session.timeout-minutes}")
     private long timeoutMinutes;
 
     public SessionCleanupTask(LicenseSessionService service) { this.service = service; }
 
-    @Scheduled(fixedRateString = "${app.heartbeat.interval-seconds:60}000")
+    @Scheduled(fixedRateString = "${app.heartbeat.interval-seconds}000")
     public void cleanup() {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(timeoutMinutes);
         service.cleanupStaleSessions(cutoff);

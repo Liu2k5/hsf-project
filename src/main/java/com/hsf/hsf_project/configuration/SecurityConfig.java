@@ -1,12 +1,14 @@
 package com.hsf.hsf_project.configuration;
 
-import com.hsf.hsf_project.service.CustomUserDetailsService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+
+import com.hsf.hsf_project.service.CustomUserDetailsService;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
@@ -21,6 +23,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép truy cập không cần đăng nhập
                         .requestMatchers("/guest/**", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()
                         // Phân quyền
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/customer/**").hasRole("CUSTOMER")

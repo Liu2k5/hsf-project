@@ -1,6 +1,7 @@
 package com.hsf.hsf_project.controller;
 
 import com.hsf.hsf_project.entity.Users;
+import com.hsf.hsf_project.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
