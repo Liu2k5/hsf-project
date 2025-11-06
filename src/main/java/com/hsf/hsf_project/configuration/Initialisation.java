@@ -44,9 +44,9 @@ public class Initialisation implements CommandLineRunner {
         if (licenseRepository.findAll().isEmpty()) {
             initialiseLicenses();
         }
-        if (activeLicenseSessionRepository.findAll().isEmpty()) {
-            initialiseActiveLicenseSessions();
-        }
+        // if (activeLicenseSessionRepository.findAll().isEmpty()) {
+        //     initialiseActiveLicenseSessions();
+        // }
     }
 
     private void initialiseActiveLicenseSessions() {

@@ -77,9 +77,11 @@ public class LicenseSessionService {
     @Transactional
     public void heartbeat(String licenseKey, String deviceId) {
         sessionRepo.findByLicenseKey(licenseKey).ifPresent(session -> {
+            System.out.println(session.getDeviceId() + " vs " + deviceId + "\n\n\n\n\n\n\n\n\n\n");
             if (session.getDeviceId().equals(deviceId)) {
                 session.setLastHeartbeat(LocalDateTime.now());
                 sessionRepo.save(session);
+                System.err.println("Heartbeat updated for license: " + licenseKey);
             }
         });
     }
