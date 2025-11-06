@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:replace="~{admin/fragments/header :: title}">Bảng điều khiển Quản trị</title>
-    <th:block th:replace="~{admin/fragments/styles :: styles}"></th:block>
+    <title th:replace="~{fragments/header :: title}">Bảng điều khiển Quản trị</title>
+    <th:block th:replace="~{fragments/styles :: styles}"></th:block>
 </head>
 <body>
-<div th:replace="~{admin/fragments/header :: header}"></div>
+<div th:replace="~{fragments/header :: header}"></div>
 
 <div class="container">
     <!-- Navigation Tabs -->
@@ -16,6 +16,7 @@
         <button class="nav-tab" onclick="switchTab('users', event)">👥 Người dùng</button>
         <button class="nav-tab" onclick="switchTab('orders', event)">📦 Đơn hàng</button>
         <button class="nav-tab" onclick="switchTab('licenses', event)">🔑 Giấy phép</button>
+        <button class="nav-tab" onclick="switchTab('products', event)">📦 Sản phẩm</button>
     </div>
 
     <!-- Dashboard Tab -->
@@ -148,6 +149,33 @@
             <div class="pagination" id="licenses-pagination"></div>
         </div>
     </div>
+
+    <!-- Products Tab -->
+    <div id="products-tab" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+                <h2>Quản lý sản phẩm</h2>
+                <button class="btn btn-primary" onclick="openAddProduct()">+ Thêm sản phẩm</button>
+            </div>
+            <div id="products-error" class="error" style="display: none;"></div>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Giá</th>
+                    <th>Số lượng</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="products-table">
+                <tr>
+                    <td colspan="5" class="loading">Đang tải...</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!-- Update Role Modal -->
@@ -163,8 +191,8 @@
         <div class="form-group">
             <label>Vai trò mới:</label>
             <select id="role-select" class="form-control">
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
+                <option value="ROLE_CUSTOMER">CUSTOMER</option>
+                <option value="ROLE_ADMIN">ADMIN</option>
             </select>
         </div>
         <div class="modal-actions">
@@ -211,8 +239,41 @@
     </div>
 </div>
 
-<div th:replace="~{admin/fragments/footer :: footer}"></div>
+<!-- Add Product Modal -->
+<div id="product-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="product-modal-title">Thêm sản phẩm</h3>
+        </div>
+        <div class="form-group">
+            <label>Tên sản phẩm:</label>
+            <input type="text" id="product-name" class="form-control" placeholder="Nhập tên sản phẩm">
+        </div>
+        <div class="form-group">
+            <label>Mô tả:</label>
+            <textarea id="product-description" class="form-control" rows="3" placeholder="Nhập mô tả sản phẩm"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Giá (VND):</label>
+            <input type="number" id="product-price" class="form-control" placeholder="Nhập giá">
+        </div>
+        <div class="form-group">
+            <label>Số lượng:</label>
+            <input type="number" id="product-quantity" class="form-control" placeholder="Nhập số lượng">
+        </div>
+        <div class="form-group">
+            <label>URL hình ảnh:</label>
+            <input type="text" id="product-image-url" class="form-control" placeholder="Nhập URL hình ảnh">
+        </div>
+        <div class="modal-actions">
+            <button class="btn" onclick="closeModal('product-modal')">Hủy</button>
+            <button class="btn btn-primary" onclick="saveProduct()">Lưu</button>
+        </div>
+    </div>
+</div>
 
-<th:block th:replace="~{admin/fragments/scripts :: scripts}"></th:block>
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
 </body>
 </html>

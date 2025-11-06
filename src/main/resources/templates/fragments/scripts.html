@@ -66,6 +66,7 @@
         else if (tabName === 'users') loadUsers(0);
         else if (tabName === 'orders') loadOrders(0);
         else if (tabName === 'licenses') loadLicenses(0);
+        else if (tabName === 'products') loadProducts();
     }
 
     // Modal functions
@@ -431,6 +432,7 @@
         const nameEl = document.getElementById('role-username');
         const roleEl = document.getElementById('role-select');
         if (nameEl) nameEl.value = username;
+        // currentRole comes as "ROLE_ADMIN" or "ROLE_CUSTOMER", use it directly
         if (roleEl) roleEl.value = currentRole;
         openModal('role-modal');
     }
@@ -634,6 +636,163 @@
         }
     }
 
+    // Product management functions
+    let selectedProductId = null;
+
+    async function loadProducts() {
+        try {
+            const response = await fetch('/admin/products');
+            if (!response.ok) throw new Error('Failed to load products');
+            const products = await response.json();
+
+            const tbody = document.getElementById('products-table');
+            if (!tbody) return;
+
+            if (!Array.isArray(products) || products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Không có dữ liệu</td></tr>';
+            } else {
+                tbody.innerHTML = products.map(product => `
+                <tr>
+                    <td>${product.productId}</td>
+                    <td>${escapeHtml(product.productName)}</td>
+                    <td>${formatCurrency(product.price)}</td>
+                    <td>${product.quantity}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="openEditProduct(${product.productId}, ${JSON.stringify(escapeHtml(product.productName))}, ${JSON.stringify(escapeHtml(product.description || ''))}, ${product.price}, ${product.quantity}, ${JSON.stringify(escapeHtml(product.imageUrl || ''))})">
+                            Sửa
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.productId})">
+                            Xóa
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            }
+        } catch (error) {
+            console.error('Error loading products:', error);
+            showError('products-error', 'Không thể tải dữ liệu sản phẩm');
+        }
+    }
+
+    function openAddProduct() {
+        selectedProductId = null;
+        const titleEl = document.getElementById('product-modal-title');
+        const nameEl = document.getElementById('product-name');
+        const descEl = document.getElementById('product-description');
+        const priceEl = document.getElementById('product-price');
+        const qtyEl = document.getElementById('product-quantity');
+        const imgEl = document.getElementById('product-image-url');
+
+        if (titleEl) titleEl.textContent = 'Thêm sản phẩm';
+        if (nameEl) nameEl.value = '';
+        if (descEl) descEl.value = '';
+        if (priceEl) priceEl.value = '';
+        if (qtyEl) qtyEl.value = '';
+        if (imgEl) imgEl.value = '';
+
+        openModal('product-modal');
+    }
+
+    function openEditProduct(id, name, description, price, quantity, imageUrl) {
+        selectedProductId = id;
+        const titleEl = document.getElementById('product-modal-title');
+        const nameEl = document.getElementById('product-name');
+        const descEl = document.getElementById('product-description');
+        const priceEl = document.getElementById('product-price');
+        const qtyEl = document.getElementById('product-quantity');
+        const imgEl = document.getElementById('product-image-url');
+
+        if (titleEl) titleEl.textContent = 'Sửa sản phẩm';
+        if (nameEl) nameEl.value = name;
+        if (descEl) descEl.value = description;
+        if (priceEl) priceEl.value = price;
+        if (qtyEl) qtyEl.value = quantity;
+        if (imgEl) imgEl.value = imageUrl;
+
+        openModal('product-modal');
+    }
+
+    async function saveProduct() {
+        const nameEl = document.getElementById('product-name');
+        const descEl = document.getElementById('product-description');
+        const priceEl = document.getElementById('product-price');
+        const qtyEl = document.getElementById('product-quantity');
+        const imgEl = document.getElementById('product-image-url');
+
+        const name = nameEl ? nameEl.value : '';
+        const description = descEl ? descEl.value : '';
+        const price = priceEl ? parseFloat(priceEl.value) : 0;
+        const quantity = qtyEl ? parseInt(qtyEl.value) : 0;
+        const imageUrl = imgEl ? imgEl.value : '';
+
+        if (!name.trim()) {
+            alert('Vui lòng nhập tên sản phẩm');
+            return;
+        }
+
+        if (price <= 0) {
+            alert('Vui lòng nhập giá hợp lệ');
+            return;
+        }
+
+        if (quantity < 0) {
+            alert('Vui lòng nhập số lượng hợp lệ');
+            return;
+        }
+
+        try {
+            const productData = {
+                productName: name,
+                description: description,
+                price: price,
+                quantity: quantity,
+                imageUrl: imageUrl
+            };
+
+            let url = '/admin/products';
+            if (selectedProductId) {
+                url = `/admin/products/${selectedProductId}`;
+            }
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(productData)
+            });
+
+            if (response.ok) {
+                closeModal('product-modal');
+                loadProducts();
+                alert(selectedProductId ? 'Cập nhật sản phẩm thành công!' : 'Thêm sản phẩm thành công!');
+            } else {
+                alert('Lỗi: Không thể lưu sản phẩm');
+            }
+        } catch (error) {
+            console.error('Error saving product:', error);
+            alert('Lỗi: Không thể lưu sản phẩm');
+        }
+    }
+
+    async function deleteProduct(id) {
+        if (!confirm('Bạn có chắc muốn xóa sản phẩm này?')) return;
+
+        try {
+            const response = await fetch(`/admin/products/${id}/delete`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                loadProducts();
+                alert('Xóa sản phẩm thành công!');
+            } else {
+                alert('Lỗi: Không thể xóa sản phẩm');
+            }
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            alert('Lỗi: Không thể xóa sản phẩm');
+        }
+    }
+
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
         // Bind nav buttons (data-tab support). Keep compatibility with inline onclick.
@@ -657,6 +816,7 @@
                     else if (text.indexOf('người dùng') !== -1) switchTab('users', e);
                     else if (text.indexOf('đơn hàng') !== -1) switchTab('orders', e);
                     else if (text.indexOf('giấy phép') !== -1) switchTab('licenses', e);
+                    else if (text.indexOf('sản phẩm') !== -1) switchTab('products', e);
                 }
             });
         });

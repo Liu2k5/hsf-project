@@ -26,10 +26,12 @@ import com.hsf.hsf_project.dto.ToggleLockRequest;
 import com.hsf.hsf_project.dto.TopProductDTO;
 import com.hsf.hsf_project.dto.UpdateRoleRequest;
 import com.hsf.hsf_project.dto.UserDTO;
+import com.hsf.hsf_project.entity.Product;
 import com.hsf.hsf_project.service.DashboardService;
 import com.hsf.hsf_project.service.LicenseService;
 import com.hsf.hsf_project.service.LicenseSessionService;
 import com.hsf.hsf_project.service.OrderService;
+import com.hsf.hsf_project.service.ProductService;
 import com.hsf.hsf_project.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -47,6 +49,7 @@ public class AdminController {
     private final LicenseService licenseService;
     private final LicenseSessionService licenseSessionService;
     private final DashboardService dashboardService;
+    private final ProductService productService;
 
     @RequestMapping("")
     public String adminHome() {
@@ -137,5 +140,49 @@ public class AdminController {
     @ResponseBody
     public List<TopProductDTO> getTopProducts() {
         return dashboardService.getTopProducts();
+    }
+
+    // Product Management APIs
+    @GetMapping("/products")
+    @ResponseBody
+    public List<Product> getAllProducts() {
+        return productService.getAllProducts();
+    }
+
+    @PostMapping("/products")
+    @ResponseBody
+    public ResponseEntity<?> addProduct(@RequestBody Product product) {
+        try {
+            Product savedProduct = productService.addProduct(product);
+            return ResponseEntity.ok(savedProduct);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/products/{id}")
+    @ResponseBody
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+        try {
+            Product updatedProduct = productService.updateProduct(id, product);
+            return ResponseEntity.ok(updatedProduct);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/products/{id}/delete")
+    @ResponseBody
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
+        try {
+            productService.deleteProduct(id);
+            return ResponseEntity.ok("Product deleted successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
