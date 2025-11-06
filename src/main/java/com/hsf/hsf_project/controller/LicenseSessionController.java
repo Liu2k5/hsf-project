@@ -42,7 +42,14 @@ public class LicenseSessionController {
 
     @PostMapping("/heartbeat")
     public ResponseEntity<?> heartbeat(@RequestBody ActivateRequest req) {
-        service.heartbeat(req.licenseKey(), req.deviceId());
-        return ResponseEntity.ok(new GenericResp("OK", "heartbeat updated"));
+        System.out.println("Heartbeat request received for license key: " + req.licenseKey() + " device: " + req.deviceId() + "\n\n\n\n\n");
+        
+        try {
+            service.heartbeat(req.licenseKey(), req.deviceId());
+            return ResponseEntity.ok(new GenericResp("OK", "heartbeat updated"));
+        } catch (Exception e) {
+            System.out.println("Heartbeat update failed: " + e.getMessage());
+            return ResponseEntity.status(400).body(new GenericResp("FAIL", e.getMessage()));
+        }
     }
 }
