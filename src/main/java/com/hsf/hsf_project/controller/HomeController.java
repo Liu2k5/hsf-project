@@ -1,13 +1,23 @@
 package com.hsf.hsf_project.controller;
 
+import com.hsf.hsf_project.entity.Product;
+import com.hsf.hsf_project.service.ProductService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.List;
+
 @Controller
 public class HomeController {
+
+    private final ProductService productService;
+
+    public HomeController(ProductService productService) {
+        this.productService = productService;
+    }
 
     // Trang chủ chung
     @GetMapping("/")
@@ -39,6 +49,8 @@ public class HomeController {
         }
         String username = (authentication != null) ? authentication.getName() : "Guest";
         model.addAttribute("customerName", username);
+        List<Product> products = productService.getAllProducts();
+        model.addAttribute("products", products);
         return "customer/customerHomePage";
     }
 
