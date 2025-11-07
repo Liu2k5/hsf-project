@@ -1,6 +1,7 @@
 package com.hsf.hsf_project.service;
 
 import com.hsf.hsf_project.entity.Product;
+import com.hsf.hsf_project.repository.ProductRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -26,6 +27,7 @@ import java.util.List;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final LicenseRepository licenseRepository;
+    private final ProductRepository productRepository;
 
     public Orders getOrderById(Long orderId) {
         return orderRepository.findById(orderId)
@@ -44,6 +46,7 @@ public class OrderService {
         Product product = order.getProduct();
         int newStock = product.getQuantity() - 1;
         product.setQuantity(newStock);
+        productRepository.save(product);
     }
 
     public Page<OrderSummaryDTO> getOrders(Pageable pageable, String status, LocalDate startDate) {
@@ -96,6 +99,16 @@ public class OrderService {
         });
 
         return dto;
+    }
+
+    public List<Orders> getOrdersByCustomerId(Long customerId) {
+        List<Orders> orders = new ArrayList<>();
+        for (Orders order : orderRepository.findAll()) {
+            if(order.getUser().getUserId().equals(customerId)){
+                orders.add(order);
+            }
+        }
+        return orders;
     }
 
 }

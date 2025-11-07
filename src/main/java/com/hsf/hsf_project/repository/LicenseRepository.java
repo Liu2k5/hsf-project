@@ -15,4 +15,6 @@ public interface LicenseRepository extends JpaRepository<License, Long>, JpaSpec
     Optional<License> findByOrder(Orders order);
 
     Optional<License> findByLicenseKey(String licenseKey);
+
+    boolean existsByLicenseKey(String licenseKey);
 }

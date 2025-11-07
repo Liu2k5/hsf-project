@@ -68,4 +68,9 @@ public class ProductService {
             throw new IllegalArgumentException("Product quantity cannot be negative");
         }
     }
+
+    public Product getProductById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+    }
 }
