@@ -1,5 +1,8 @@
 package com.hsf.hsf_project.controller;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,9 +36,6 @@ import com.hsf.hsf_project.service.OrderService;
 import com.hsf.hsf_project.service.UserService;
 
 import lombok.RequiredArgsConstructor;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @RequiredArgsConstructor
 @Controller
@@ -109,8 +109,15 @@ public class AdminController {
     @PostMapping("/licenses/revoke")
     @ResponseBody
     public ResponseEntity<String> revokeLicense(@RequestBody RevokeRequest request) {
-        licenseSessionService.revokeLicense(request.licenseKey(), request.reason());
-        return ResponseEntity.ok("License revoked");
+        try {
+            System.out.println("Revoke request received: " + request.licenseKey());
+            licenseSessionService.revokeLicense(request.licenseKey(), request.reason());
+            return ResponseEntity.ok("License revoked");
+        } catch (Exception e) {
+            System.err.println("Error revoking license: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Failed to revoke license: " + e.getMessage());
+        }
     }
 
     @PostMapping("/licenses/reset")
