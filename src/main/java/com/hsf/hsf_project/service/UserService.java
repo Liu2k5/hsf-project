@@ -1,11 +1,13 @@
 package com.hsf.hsf_project.service;
 
+import com.hsf.hsf_project.dto.RegisterRequest;
 import com.hsf.hsf_project.dto.UserDTO;
 import com.hsf.hsf_project.entity.Role;
 import com.hsf.hsf_project.entity.Users;
 import com.hsf.hsf_project.repository.RoleRepository;
 import com.hsf.hsf_project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,7 +26,7 @@ public class UserService {
     }
 
     public boolean existsByUsername(String username) {
-        return userRepository.findByUsername(username) != null;
+        return userRepository.existsByUsername(username);
     }
 
     public void registerUser(Users user) {
@@ -34,7 +36,6 @@ public class UserService {
         if (role == null) {
             role = roleRepository.findByRoleName(Role.ROLE_CUSTOMER);
             if (role == null) {
-                // Nếu database chưa có ROLE_CUSTOMER thì tự tạo
                 role = new Role();
                 role.setRoleName(Role.ROLE_CUSTOMER);
                 roleRepository.save(role);
@@ -59,7 +60,6 @@ public class UserService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Prevent demoting admin to customer
         if (user.getRole() != null && Role.ROLE_ADMIN.equals(user.getRole().getRoleName())
                 && Role.ROLE_CUSTOMER.equals(newRoleName)) {
             throw new IllegalArgumentException("Cannot demote admin to customer role");
@@ -74,7 +74,6 @@ public class UserService {
     }
 
     public Users addUser(String username, String password, String email, String roleName) {
-        // Validate and normalize username
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be empty");
         }
@@ -84,7 +83,6 @@ public class UserService {
             throw new IllegalArgumentException("Username must be at least 3 characters");
         }
 
-        // Validate password (not trimmed - passwords can have leading/trailing spaces)
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be empty");
         }
@@ -93,18 +91,15 @@ public class UserService {
             throw new IllegalArgumentException("Password must be at least 6 characters");
         }
 
-        // Validate and normalize email
         if (email == null || email.trim().isEmpty()) {
             throw new IllegalArgumentException("Email cannot be empty");
         }
         email = email.trim();
 
-        // Basic email validation
         if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
             throw new IllegalArgumentException("Invalid email format");
         }
 
-        // Check username uniqueness
         if (existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists");
         }
@@ -127,16 +122,30 @@ public class UserService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Prevent deleting admin users
         if (user.getRole() != null && Role.ROLE_ADMIN.equals(user.getRole().getRoleName())) {
             throw new IllegalArgumentException("Cannot delete admin users");
         }
 
-        // Prevent users from deleting themselves
         if (user.getUsername().equals(currentUsername)) {
             throw new IllegalArgumentException("Cannot delete your own account");
         }
 
         userRepository.delete(user);
+    }
+
+    public Users registerUserFromDto(RegisterRequest req) {
+        if (existsByUsername(req.getUsername())) throw new IllegalArgumentException("Username already exists");
+        Users u = new Users();
+        u.setUsername(req.getUsername().trim());
+        u.setPassword(passwordEncoder.encode(req.getPassword()));
+        u.setEmail(req.getEmail().trim());
+        Role role = roleRepository.findByRoleName(Role.ROLE_CUSTOMER);
+        if (role == null) {
+            role = new Role();
+            role.setRoleName(Role.ROLE_CUSTOMER);
+            roleRepository.save(role);
+        }
+        u.setRole(role);
+        return userRepository.save(u);
     }
 }
