@@ -76,6 +76,11 @@
             justify-content: center;
             gap: 10px;
         }
+        .pagination .page-item.active .page-link {
+            background-color: #343a40;
+            border-color: #343a40;
+        }
+
     </style>
 </head>
 <body>
@@ -89,6 +94,28 @@
 
     <section>
         <h2>Xin chào, <span th:text="${customerName != null ? customerName : 'Guest'}">User</span>!</h2>
+
+        <form class="row mb-4" th:action="@{/customer}" method="get">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="keyword"
+                       placeholder="Tìm theo tên sản phẩm..."
+                       th:value="${keyword}">
+            </div>
+            <div class="col-md-2">
+                <input type="number" class="form-control" name="minPrice"
+                       placeholder="Giá từ" th:value="${minPrice}">
+            </div>
+            <div class="col-md-2">
+                <input type="number" class="form-control" name="maxPrice"
+                       placeholder="Đến" th:value="${maxPrice}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </form>
+
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3>Danh sách sản phẩm</h3>
             <a href="customer/myLicense" class="btn btn-primary"><i class="fas fa-history"></i> Lịch sử giao dịch</a>
@@ -118,6 +145,34 @@
                 </tr>
                 </tbody>
             </table>
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Product pagination">
+                    <ul class="pagination">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/customer(page=${currentPage - 1}, size=${pageSize}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice})}">
+                                Trước
+                            </a>
+                        </li>
+
+                        <li class="page-item"
+                            th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/customer(page=${i}, size=${pageSize}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/customer(page=${currentPage + 1}, size=${pageSize}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice})}">
+                                Sau
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
         </div>
     </section>
 </div>

@@ -7,6 +7,7 @@ import com.hsf.hsf_project.service.LicenseService;
 import com.hsf.hsf_project.service.OrderService;
 import com.hsf.hsf_project.service.ProductService;
 import com.hsf.hsf_project.service.UserService;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
@@ -99,16 +100,35 @@ public class CustomerController {
     }
 
     @GetMapping("/myLicense")
-    public String MyLicense(Model model, Authentication authentication){
+    public String myLicense(
+            Model model,
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String status
+    ) {
         if (authentication == null ||
                 !authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CUSTOMER"))) {
             return "redirect:/access-denied";
         }
-        String username = (authentication != null) ? authentication.getName() : "Guest";
+
+        String username = authentication.getName();
         Users user = userService.findByUsername(username);
 
-        List<Orders> orders = orderService.getOrdersByCustomerId(user.getUserId());
-        model.addAttribute("orders", orders);
+        Page<Orders> orderPage = orderService.searchOrdersByCustomer(user.getUserId(), status, page, size);
+
+        model.addAttribute("orders", orderPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", orderPage.getTotalPages());
+        model.addAttribute("pageSize", size);
+
+        // giữ lại filter
+        model.addAttribute("status", status);
+
+        // các trạng thái có thể lọc
+        List<String> statuses = List.of("PENDING", "COMPLETED", "FAILED");
+        model.addAttribute("statuses", statuses);
+
         return "customer/myLicense";
     }
     @GetMapping("/changeLicense/{licenseId}")

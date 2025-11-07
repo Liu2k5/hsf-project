@@ -2,6 +2,10 @@ package com.hsf.hsf_project.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.hsf.hsf_project.entity.Product;
@@ -16,6 +20,11 @@ public class ProductService {
 
     public List<Product> getAllProducts() {
         return productRepository.findAll();
+    }
+
+    public Page<Product> getProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("productId").ascending());
+        return productRepository.findAll(pageable);
     }
 
     // add
@@ -72,5 +81,10 @@ public class ProductService {
     public Product getProductById(Long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+    }
+
+    public Page<Product> searchProducts(String keyword, Double minPrice, Double maxPrice, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("productId").ascending());
+        return productRepository.searchProducts(keyword, minPrice, maxPrice, pageable);
     }
 }

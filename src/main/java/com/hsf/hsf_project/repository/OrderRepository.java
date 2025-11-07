@@ -3,6 +3,8 @@ package com.hsf.hsf_project.repository;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -26,5 +28,15 @@ public interface OrderRepository extends JpaRepository<Orders, Long>, JpaSpecifi
     @Query("SELECT o FROM Orders o WHERE o.product IS NOT NULL")
     List<Orders> findAllWithProduct();
 
+    @Query("""
+        SELECT o FROM Orders o 
+        WHERE o.user.userId = :userId
+        AND (:status IS NULL OR :status = '' OR o.status = :status)
+        """)
+    Page<Orders> searchOrdersByUser(
+            @Param("userId") Long userId,
+            @Param("status") String status,
+            Pageable pageable
+    );
 
 }
