@@ -11,6 +11,9 @@ import lombok.Setter;
 @Setter
 @Entity
 public class Role {
+    public static final String ROLE_ADMIN = "ROLE_ADMIN";
+    public static final String ROLE_CUSTOMER = "ROLE_CUSTOMER";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int roleId;
