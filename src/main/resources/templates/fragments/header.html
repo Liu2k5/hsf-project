@@ -38,23 +38,7 @@
                                 <strong sec:authentication="name">ADMIN</strong>
                             </div>
                         </div>
-                        <div class="dropdown-divider"></div>
-                        <div sec:authorize="hasRole('ADMIN')">
-                            <a href="/admin" class="dropdown-item">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M8 2a2 2 0 012 2v1h2a1 1 0 011 1v7a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1h2V4a2 2 0 012-2zm0 1a1 1 0 00-1 1v1h2V4a1 1 0 00-1-1z"/>
-                                </svg>
-                                Quản trị
-                            </a>
-                        </div>
-                        <div sec:authorize="hasRole('CUSTOMER')">
-                            <a href="/customer" class="dropdown-item">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm2 2v6h8V5H4z"/>
-                                </svg>
-                                Trang chủ
-                            </a>
-                        </div>
+
                         <div class="dropdown-divider"></div>
                         <form th:action="@{/logout}" method="post" style="margin: 0;">
                             <button type="submit" class="dropdown-item logout-btn">
