@@ -25,4 +25,6 @@ public interface OrderRepository extends JpaRepository<Orders, Long>, JpaSpecifi
 
     @Query("SELECT o FROM Orders o WHERE o.product IS NOT NULL")
     List<Orders> findAllWithProduct();
+
+
 }
