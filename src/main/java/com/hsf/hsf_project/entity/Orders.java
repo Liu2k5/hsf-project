@@ -28,7 +28,7 @@ public class Orders {
 
     private String paymentLink;
 
-    private String status = "PENDING";
+    private String status = "COMPLETED";
 
     @OneToOne(mappedBy = "order", fetch = FetchType.EAGER)
     private License license;
