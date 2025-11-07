@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:replace="~{admin/fragments/header :: title}">Bảng điều khiển Quản trị</title>
-    <th:block th:replace="~{admin/fragments/styles :: styles}"></th:block>
+    <title th:replace="~{fragments/header :: title}">Bảng điều khiển Quản trị</title>
+    <th:block th:replace="~{fragments/styles :: styles}"></th:block>
 </head>
 <body>
-<div th:replace="~{admin/fragments/header :: header}"></div>
+<div th:replace="~{fragments/header :: header('Bảng điều khiển Quản trị')}"></div>
 
 <div class="container">
     <!-- Navigation Tabs -->
@@ -16,6 +16,7 @@
         <button class="nav-tab" onclick="switchTab('users', event)">👥 Người dùng</button>
         <button class="nav-tab" onclick="switchTab('orders', event)">📦 Đơn hàng</button>
         <button class="nav-tab" onclick="switchTab('licenses', event)">🔑 Giấy phép</button>
+        <button class="nav-tab" onclick="switchTab('products', event)">📦 Sản phẩm</button>
     </div>
 
     <!-- Dashboard Tab -->
@@ -59,6 +60,7 @@
         <div class="card">
             <div class="card-header">
                 <h2>Quản lý người dùng</h2>
+                <button class="btn btn-primary" onclick="openAddUser()">+ Thêm người dùng</button>
             </div>
             <div id="users-error" class="error" style="display: none;"></div>
             <table>
@@ -67,13 +69,12 @@
                     <th>ID</th>
                     <th>Tên đăng nhập</th>
                     <th>Vai trò</th>
-                    <th>Trạng thái</th>
                     <th>Hành động</th>
                 </tr>
                 </thead>
                 <tbody id="users-table">
                 <tr>
-                    <td colspan="5" class="loading">Đang tải...</td>
+                    <td colspan="4" class="loading">Đang tải...</td>
                 </tr>
                 </tbody>
             </table>
@@ -148,6 +149,33 @@
             <div class="pagination" id="licenses-pagination"></div>
         </div>
     </div>
+
+    <!-- Products Tab -->
+    <div id="products-tab" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+                <h2>Quản lý sản phẩm</h2>
+                <button class="btn btn-primary" onclick="openAddProduct()">+ Thêm sản phẩm</button>
+            </div>
+            <div id="products-error" class="error" style="display: none;"></div>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Giá</th>
+                    <th>Số lượng</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="products-table">
+                <tr>
+                    <td colspan="5" class="loading">Đang tải...</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!-- Update Role Modal -->
@@ -163,13 +191,51 @@
         <div class="form-group">
             <label>Vai trò mới:</label>
             <select id="role-select" class="form-control">
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
+                <option value="ROLE_CUSTOMER">CUSTOMER</option>
+                <option value="ROLE_ADMIN">ADMIN</option>
             </select>
         </div>
         <div class="modal-actions">
             <button class="btn" onclick="closeModal('role-modal')">Hủy</button>
             <button class="btn btn-primary" onclick="updateRole()">Cập nhật</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div id="add-user-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Thêm người dùng</h3>
+        </div>
+        <div class="form-group">
+            <label for="add-username">Tên đăng nhập: <span style="color: red;">*</span></label>
+            <input type="text" id="add-username" class="form-control"
+                   placeholder="Nhập tên đăng nhập (tối thiểu 3 ký tự)"
+                   minlength="3" required>
+        </div>
+        <div class="form-group">
+            <label for="add-password">Mật khẩu: <span style="color: red;">*</span></label>
+            <input type="password" id="add-password" class="form-control"
+                   placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
+                   minlength="6" required>
+        </div>
+        <div class="form-group">
+            <label for="add-email">Email: <span style="color: red;">*</span></label>
+            <input type="email" id="add-email" class="form-control"
+                   placeholder="Nhập địa chỉ email"
+                   required>
+        </div>
+        <div class="form-group">
+            <label for="add-role">Vai trò: <span style="color: red;">*</span></label>
+            <select id="add-role" class="form-control" required>
+                <option value="ROLE_CUSTOMER">CUSTOMER</option>
+                <option value="ROLE_ADMIN">ADMIN</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn" onclick="closeModal('add-user-modal')">Hủy</button>
+            <button class="btn btn-primary" onclick="addUser()">Thêm</button>
         </div>
     </div>
 </div>
@@ -211,8 +277,60 @@
     </div>
 </div>
 
-<div th:replace="~{admin/fragments/footer :: footer}"></div>
+<!-- Add Product Modal -->
+<div id="product-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="product-modal-title">Thêm sản phẩm</h3>
+        </div>
+        <div class="form-group">
+            <label>Tên sản phẩm:</label>
+            <input type="text" id="product-name" class="form-control" placeholder="Nhập tên sản phẩm">
+        </div>
+        <div class="form-group">
+            <label>Mô tả:</label>
+            <textarea id="product-description" class="form-control" rows="3" placeholder="Nhập mô tả sản phẩm"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Giá (VND):</label>
+            <input type="number" id="product-price" class="form-control" placeholder="Nhập giá">
+        </div>
+        <div class="form-group">
+            <label>Số lượng:</label>
+            <input type="number" id="product-quantity" class="form-control" placeholder="Nhập số lượng">
+        </div>
+        <div class="form-group">
+            <label>URL hình ảnh:</label>
+            <input type="url" id="product-image-url" class="form-control" placeholder="https://example.com/image.jpg" oninput="previewProductImage()">
+            <small style="color: #666; display: block; margin-top: 5px;">
+                Nhập URL đầy đủ (bắt đầu bằng http:// hoặc https://). Hỗ trợ các định dạng: JPG, PNG, GIF, WebP, BMP, SVG
+            </small>
+        </div>
+        <div class="form-group" id="image-preview-container" style="display: none;">
+            <label>Xem trước:</label>
+            <div style="border: 1px solid #ddd; padding: 10px; border-radius: 4px; text-align: center; background: #f9f9f9;">
+                <img id="product-image-preview" src="" alt="Xem trước hình ảnh" style="max-width: 100%; max-height: 200px; display: none;" onload="this.style.display='block'; hideImageMessages()" onerror="showImageError()">
+                <div id="image-error-message" style="display: none; color: #e74c3c; padding: 10px;">
+                    ❌ Không thể tải hình ảnh. Vui lòng kiểm tra:
+                    <ul style="text-align: left; margin: 5px 0; padding-left: 20px;">
+                        <li>URL có đúng định dạng không (bắt đầu bằng http:// hoặc https://)</li>
+                        <li>Hình ảnh có tồn tại và có thể truy cập công khai không</li>
+                        <li>Định dạng file có được hỗ trợ không (JPG, PNG, GIF, WebP)</li>
+                    </ul>
+                </div>
+                <div id="image-loading-message" style="color: #666; padding: 10px;">⏳ Đang tải hình ảnh...</div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn" onclick="closeModal('product-modal')">Hủy</button>
+            <button class="btn btn-primary" onclick="saveProduct()">Lưu</button>
+        </div>
+    </div>
+</div>
 
-<th:block th:replace="~{admin/fragments/scripts :: scripts}"></th:block>
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<th:block th:replace="~{fragments/header :: header-script}"></th:block>
+<th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
 </body>
 </html>
