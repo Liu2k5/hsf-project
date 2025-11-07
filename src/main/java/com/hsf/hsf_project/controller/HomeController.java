@@ -20,7 +20,7 @@ public class HomeController {
     }
 
     // Trang chủ chung
-    @GetMapping("/")
+    @GetMapping("/home")
     public String home(Model model) {
         model.addAttribute("message", "Chào mừng đến với trang chủ!");
         return "customer/customerHomePage"; // Giao diện cho khách hoặc chưa đăng nhập
