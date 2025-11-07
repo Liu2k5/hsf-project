@@ -24,16 +24,20 @@ public class SecurityConfig {
                         // Cho phép truy cập không cần đăng nhập
                         .requestMatchers("/guest/**", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/api/license/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()  // Cho phép WebSocket
                         // Phân quyền
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/customer/**").hasRole("CUSTOMER")
                         // Mặc định
                         .anyRequest().authenticated()
                 )
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.disable())
+                )
                 .formLogin(form -> form
-                        .loginPage("/guest/login")               // form login duy nhất
-                        .loginProcessingUrl("/process-login")    // action của form login
-                        .successHandler(customAuthenticationSuccessHandler()) // redirect đúng role
+                        .loginPage("/guest/login")
+                        .loginProcessingUrl("/process-login")
+                        .successHandler(customAuthenticationSuccessHandler())
                         .failureUrl("/guest/login?error=true")
                         .permitAll()
                 )
