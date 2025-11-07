@@ -92,7 +92,6 @@ public class CustomerController {
             order.setUser(user);
             order.setPaidDate(LocalDateTime.now().toString());
             orderService.saveOrder(order);
-            licenseService.createLicense(order);
             orderService.doWhenOrderConfirmed(order);
         }
         return "redirect:/customer/product/"+productId;
