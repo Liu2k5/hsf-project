@@ -15,6 +15,7 @@ public class RedirectionFilter implements Filter{
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         // TODO Auto-generated method stub
+        // chan cac tai khoan da dang nhap vao trang dang nhap
         
     }
 

@@ -88,18 +88,43 @@ public class LicenseSessionService {
 
     @Transactional
     public void revokeLicense(String licenseKey, String reason) {
-        licenseRepo.findByLicenseKey(licenseKey).ifPresent(lic -> {
-            // lic.setStatus(LicenseStatus.REVOKED);
-            lic.setEnabled(false);
-            licenseRepo.save(lic);
-            // notify active session if any
-            sessionRepo.findByLicenseKey(licenseKey).ifPresent(session -> {
-                // push websocket LOCK
-                wsManager.sendLockToLicense(licenseKey, reason);
+        System.out.println("=== REVOKE LICENSE CALLED ===");
+        System.out.println("License Key: " + licenseKey);
+        System.out.println("Reason: " + reason);
+        
+        var licenseOpt = licenseRepo.findByLicenseKey(licenseKey);
+        if (licenseOpt.isEmpty()) {
+            System.out.println("ERROR: License not found!");
+            throw new RuntimeException("License not found: " + licenseKey);
+        }
+        
+        var lic = licenseOpt.get();
+        System.out.println("License found: " + lic.getLicenseKey());
+        
+        // lic.setStatus(LicenseStatus.REVOKED);
+        lic.setEnabled(false);
+        licenseRepo.save(lic);
+        System.out.println("License disabled in database");
+        
+        // notify active session if any
+        sessionRepo.findByLicenseKey(licenseKey).ifPresentOrElse(
+            session -> {
+                System.out.println("Active session found, sending LOCK message...");
+                try {
+                    wsManager.sendLockToLicense(licenseKey, reason);
+                    System.out.println("LOCK message sent successfully");
+                } catch (Exception e) {
+                    System.err.println("ERROR sending LOCK message: " + e.getMessage());
+                    e.printStackTrace();
+                }
                 // remove session
                 sessionRepo.delete(session);
-            });
-        });
+                System.out.println("Session deleted");
+            },
+            () -> System.out.println("No active session found for this license")
+        );
+        
+        System.out.println("=== REVOKE LICENSE COMPLETED ===");
     }
 
     @Transactional
