@@ -32,11 +32,11 @@ public class UserService {
 
         Role role = user.getRole();
         if (role == null) {
-            role = roleRepository.findByRoleName("ROLE_CUSTOMER");
+            role = roleRepository.findByRoleName(Role.ROLE_CUSTOMER);
             if (role == null) {
                 // Nếu database chưa có ROLE_CUSTOMER thì tự tạo
                 role = new Role();
-                role.setRoleName("ROLE_CUSTOMER");
+                role.setRoleName(Role.ROLE_CUSTOMER);
                 roleRepository.save(role);
             }
         }
@@ -51,7 +51,6 @@ public class UserService {
             dto.setUserId(user.getUserId());
             dto.setUsername(user.getUsername());
             dto.setRoleName(user.getRole() != null ? user.getRole().getRoleName() : null);
-            dto.setLocked(user.isLocked());
             return dto;
         });
     }
@@ -59,6 +58,13 @@ public class UserService {
     public void updateUserRole(Long userId, String newRoleName) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Prevent demoting admin to customer
+        if (user.getRole() != null && Role.ROLE_ADMIN.equals(user.getRole().getRoleName())
+                && Role.ROLE_CUSTOMER.equals(newRoleName)) {
+            throw new IllegalArgumentException("Cannot demote admin to customer role");
+        }
+
         Role role = roleRepository.findByRoleName(newRoleName);
         if (role == null) {
             throw new RuntimeException("Role not found");
@@ -67,10 +73,70 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void toggleUserLock(Long userId, boolean lockStatus) {
+    public Users addUser(String username, String password, String email, String roleName) {
+        // Validate and normalize username
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username cannot be empty");
+        }
+        username = username.trim();
+
+        if (username.length() < 3) {
+            throw new IllegalArgumentException("Username must be at least 3 characters");
+        }
+
+        // Validate password (not trimmed - passwords can have leading/trailing spaces)
+        if (password == null || password.isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be empty");
+        }
+
+        if (password.length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters");
+        }
+
+        // Validate and normalize email
+        if (email == null || email.trim().isEmpty()) {
+            throw new IllegalArgumentException("Email cannot be empty");
+        }
+        email = email.trim();
+
+        // Basic email validation
+        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
+
+        // Check username uniqueness
+        if (existsByUsername(username)) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+
+        Users user = new Users();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setEmail(email);
+
+        Role role = roleRepository.findByRoleName(roleName);
+        if (role == null) {
+            throw new IllegalArgumentException("Role not found: " + roleName);
+        }
+        user.setRole(role);
+
+        return userRepository.save(user);
+    }
+
+    public void deleteUser(Long userId, String currentUsername) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setLocked(lockStatus);
-        userRepository.save(user);
+
+        // Prevent deleting admin users
+        if (user.getRole() != null && Role.ROLE_ADMIN.equals(user.getRole().getRoleName())) {
+            throw new IllegalArgumentException("Cannot delete admin users");
+        }
+
+        // Prevent users from deleting themselves
+        if (user.getUsername().equals(currentUsername)) {
+            throw new IllegalArgumentException("Cannot delete your own account");
+        }
+
+        userRepository.delete(user);
     }
 }

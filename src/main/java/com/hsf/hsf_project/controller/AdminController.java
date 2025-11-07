@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.hsf.hsf_project.dto.AddUserRequest;
 import com.hsf.hsf_project.dto.LicenseDTO;
 import com.hsf.hsf_project.dto.OrderDetailDTO;
 import com.hsf.hsf_project.dto.OrderSummaryDTO;
@@ -22,7 +25,6 @@ import com.hsf.hsf_project.dto.ResetRequest;
 import com.hsf.hsf_project.dto.RevenueByDayDTO;
 import com.hsf.hsf_project.dto.RevokeRequest;
 import com.hsf.hsf_project.dto.StatsSummaryDTO;
-import com.hsf.hsf_project.dto.ToggleLockRequest;
 import com.hsf.hsf_project.dto.TopProductDTO;
 import com.hsf.hsf_project.dto.UpdateRoleRequest;
 import com.hsf.hsf_project.dto.UserDTO;
@@ -35,10 +37,12 @@ import com.hsf.hsf_project.service.ProductService;
 import com.hsf.hsf_project.service.UserService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @Controller
 @RequestMapping("/admin")
@@ -69,15 +73,39 @@ public class AdminController {
     @PostMapping("/users/role")
     @ResponseBody
     public ResponseEntity<String> updateRole(@RequestBody UpdateRoleRequest request) {
-        userService.updateUserRole(request.userId(), request.newRoleName());
-        return ResponseEntity.ok("Role updated successfully");
+        try {
+            userService.updateUserRole(request.userId(), request.newRoleName());
+            return ResponseEntity.ok("Role updated successfully");
+        } catch (IllegalArgumentException e) {
+            // Log the actual error for debugging but return a safe message to user
+            log.warn("Failed to update user role for userId {}: {}", request.userId(), e.getMessage());
+            return ResponseEntity.badRequest().body("Failed to update user role");
+        }
     }
 
-    @PostMapping("/users/lock")
+    @PostMapping("/users")
     @ResponseBody
-    public ResponseEntity<String> toggleLock(@RequestBody ToggleLockRequest request) {
-        userService.toggleUserLock(request.userId(), request.lock());
-        return ResponseEntity.ok("User lock status changed");
+    public ResponseEntity<?> addUser(@RequestBody AddUserRequest request) {
+        try {
+            userService.addUser(request.username(), request.password(), request.email(), request.roleName());
+            return ResponseEntity.ok("User added successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/users/{userId}/delete")
+    @ResponseBody
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId,
+                                        @AuthenticationPrincipal UserDetails currentUser) {
+        try {
+            userService.deleteUser(userId, currentUser.getUsername());
+            return ResponseEntity.ok("User deleted successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // Order Management APIs

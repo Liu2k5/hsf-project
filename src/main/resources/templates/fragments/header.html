@@ -3,16 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:fragment="title">Bảng điều khiển Quản trị</title>
+    <title th:fragment="title">WebLicense HSF302</title>
 </head>
 <body>
-<div th:fragment="header" class="header">
+<div th:fragment="header(pageTitle)" class="header">
     <div class="header-content">
+        <div class="header-left">
+            <div class="logo">
+                <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="4" y="4" width="24" height="24" rx="4" fill="white" opacity="0.9"/>
+                    <path d="M16 8L12 12L16 16L12 20L16 24L20 20L16 16L20 12L16 8Z" fill="#3498db"/>
+                </svg>
+                <div class="header-title">
+                    <h1 class="site-name">HSF302</h1>
+                    <p class="page-title" th:text="${pageTitle}">Dashboard</p>
+                </div>
+            </div>
+        </div>
         <div class="header-right">
-            <span class="user-info" sec:authentication="name">Admin</span>
-            <a href="/logout" class="logout-btn">Đăng xuất</a>
+            <div class="user-info-wrapper">
+                <div class="user-dropdown">
+                    <button class="user-menu-btn" onclick="toggleUserMenu(event)">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 2a4 4 0 100 8 4 4 0 000-8zM4 14a6 6 0 0112 0v2H4v-2z"/>
+                        </svg>
+                        <span class="user-name" sec:authentication="name">Admin</span>
+                        <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M4 6l4 4 4-4z"/>
+                        </svg>
+                    </button>
+                    <div class="dropdown-content" id="userDropdown">
+                        <div class="dropdown-header">
+                            <div class="dropdown-user-info">
+                                <strong sec:authentication="name">ADMIN</strong>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div sec:authorize="hasRole('ADMIN')">
+                            <a href="/admin" class="dropdown-item">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M8 2a2 2 0 012 2v1h2a1 1 0 011 1v7a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1h2V4a2 2 0 012-2zm0 1a1 1 0 00-1 1v1h2V4a1 1 0 00-1-1z"/>
+                                </svg>
+                                Quản trị
+                            </a>
+                        </div>
+                        <div sec:authorize="hasRole('CUSTOMER')">
+                            <a href="/customer" class="dropdown-item">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm2 2v6h8V5H4z"/>
+                                </svg>
+                                Trang chủ
+                            </a>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <form th:action="@{/logout}" method="post" style="margin: 0;">
+                            <button type="submit" class="dropdown-item logout-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M6 2a1 1 0 00-1 1v10a1 1 0 001 1h1V2H6zm3 0v12h3a1 1 0 001-1V3a1 1 0 00-1-1H9zm2 5a.5.5 0 110 1 .5.5 0 010-1z"/>
+                                </svg>
+                                Đăng xuất
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script th:fragment="header-script">
+    function toggleUserMenu(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('userDropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('show');
+        }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('userDropdown');
+        if (dropdown && dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+        }
+    });
+</script>
 </body>
 </html>

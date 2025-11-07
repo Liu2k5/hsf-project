@@ -206,38 +206,37 @@
     // Load Users
     async function loadUsers(page) {
         currentUsersPage = page;
+        console.log('loadUsers called for page:', page);
         try {
             const response = await fetch(`/admin/users?page=${page}&size=10`);
             if (!response.ok) throw new Error('Failed to load users');
             const data = await response.json();
+            console.log('Users data received:', data);
 
             const tbody = document.getElementById('users-table');
             if (!tbody) return;
 
             if (!data || !Array.isArray(data.content) || data.content.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Không có dữ liệu</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Không có dữ liệu</td></tr>';
             } else {
                 tbody.innerHTML = data.content.map(user => {
                     const escapedUsername = escapeHtml(user.username);
                     const escapedRole = escapeHtml(user.roleName);
+                    const isAdmin = escapedRole === 'ROLE_ADMIN';
                     return `
                 <tr>
                     <td>${user.userId}</td>
                     <td>${escapedUsername}</td>
                     <td><span class="badge badge-info">${escapedRole}</span></td>
                     <td>
-                        <span class="badge ${user.locked ? 'badge-danger' : 'badge-success'}">
-                            ${user.locked ? '🔒 Khóa' : '✓ Hoạt động'}
-                        </span>
-                    </td>
-                    <td>
                         <button class="btn btn-primary btn-sm" onclick='openUpdateRole(${user.userId}, ${JSON.stringify(escapedUsername)}, ${JSON.stringify(escapedRole)})'>
                             Đổi vai trò
                         </button>
-                        <button class="btn ${user.locked ? 'btn-success' : 'btn-warning'} btn-sm"
-                                onclick="toggleLock(${user.userId}, ${!user.locked})">
-                            ${user.locked ? 'Mở khóa' : 'Khóa'}
+                        ${!isAdmin ? `
+                        <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.userId})">
+                            Xóa
                         </button>
+                        ` : '<span style="color: #999;">Admin không thể xóa</span>'}
                     </td>
                 </tr>
             `;}).join('');
@@ -433,7 +432,20 @@
         const roleEl = document.getElementById('role-select');
         if (nameEl) nameEl.value = username;
         // currentRole comes as "ROLE_ADMIN" or "ROLE_CUSTOMER", use it directly
-        if (roleEl) roleEl.value = currentRole;
+        if (roleEl) {
+            roleEl.value = currentRole;
+            // Disable customer option if current role is admin (to prevent demotion)
+            const customerOption = roleEl.querySelector('option[value="ROLE_CUSTOMER"]');
+            if (customerOption) {
+                if (currentRole === 'ROLE_ADMIN') {
+                    customerOption.disabled = true;
+                    customerOption.textContent = 'CUSTOMER (không thể hạ cấp từ admin)';
+                } else {
+                    customerOption.disabled = false;
+                    customerOption.textContent = 'CUSTOMER';
+                }
+            }
+        }
         openModal('role-modal');
     }
 
@@ -459,7 +471,8 @@
                 loadUsers(currentUsersPage);
                 alert('Cập nhật vai trò thành công!');
             } else {
-                alert('Lỗi: Không thể cập nhật vai trò');
+                const errorText = await response.text();
+                alert('Lỗi: ' + errorText);
             }
         } catch (error) {
             console.error('Error updating role:', error);
@@ -467,25 +480,117 @@
         }
     }
 
-    async function toggleLock(userId, lock) {
-        const action = lock ? 'khóa' : 'mở khóa';
-        if (!confirm(`Bạn có chắc muốn ${action} tài khoản này?`)) return;
+    function openAddUser() {
+        const usernameEl = document.getElementById('add-username');
+        const passwordEl = document.getElementById('add-password');
+        const emailEl = document.getElementById('add-email');
+        const roleEl = document.getElementById('add-role');
+
+        if (usernameEl) usernameEl.value = '';
+        if (passwordEl) passwordEl.value = '';
+        if (emailEl) emailEl.value = '';
+        if (roleEl) roleEl.value = 'ROLE_CUSTOMER';
+
+        openModal('add-user-modal');
+    }
+
+    async function addUser() {
+        const usernameEl = document.getElementById('add-username');
+        const passwordEl = document.getElementById('add-password');
+        const emailEl = document.getElementById('add-email');
+        const roleEl = document.getElementById('add-role');
+
+        const username = usernameEl ? usernameEl.value.trim() : '';
+        const password = passwordEl ? passwordEl.value : '';
+        const email = emailEl ? emailEl.value.trim() : '';
+        const roleName = roleEl ? roleEl.value : 'ROLE_CUSTOMER';
+
+        // Validation
+        if (!username) {
+            alert('Vui lòng nhập tên đăng nhập');
+            if (usernameEl) usernameEl.focus();
+            return;
+        }
+
+        if (username.length < 3) {
+            alert('Tên đăng nhập phải có ít nhất 3 ký tự');
+            if (usernameEl) usernameEl.focus();
+            return;
+        }
+
+        if (!password) {
+            alert('Vui lòng nhập mật khẩu');
+            if (passwordEl) passwordEl.focus();
+            return;
+        }
+
+        if (password.length < 6) {
+            alert('Mật khẩu phải có ít nhất 6 ký tự');
+            if (passwordEl) passwordEl.focus();
+            return;
+        }
+
+        if (!email) {
+            alert('Vui lòng nhập email');
+            if (emailEl) emailEl.focus();
+            return;
+        }
+
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('Email không hợp lệ');
+            if (emailEl) emailEl.focus();
+            return;
+        }
+
         try {
-            const response = await fetch('/admin/users/lock', {
+            const response = await fetch('/admin/users', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, lock })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    email: email,
+                    roleName: roleName
+                })
+            });
+
+            if (response.ok) {
+                closeModal('add-user-modal');
+                loadUsers(currentUsersPage);
+                alert('Thêm người dùng thành công!');
+            } else {
+                const errorText = await response.text();
+                alert('Lỗi: ' + errorText);
+            }
+        } catch (error) {
+            console.error('Error adding user:', error);
+            alert('Lỗi kết nối: ' + error.message + '\nVui lòng kiểm tra kết nối mạng và thử lại.');
+        }
+    }
+
+    async function deleteUser(userId) {
+        if (!confirm('Bạn có chắc muốn xóa người dùng này? Hành động này không thể hoàn tác.')) return;
+
+        try {
+            const response = await fetch(`/admin/users/${userId}/delete`, {
+                method: 'POST'
             });
 
             if (response.ok) {
                 loadUsers(currentUsersPage);
-                alert(`${action.charAt(0).toUpperCase() + action.slice(1)} tài khoản thành công!`);
+                alert('Xóa người dùng thành công!');
             } else {
-                alert(`Lỗi: Không thể ${action} tài khoản`);
+                const errorText = await response.text();
+                alert('Lỗi: ' + errorText);
             }
         } catch (error) {
-            console.error('Error toggling lock:', error);
-            alert(`Lỗi: Không thể ${action} tài khoản`);
+            console.error('Error deleting user:', error);
+            alert('Lỗi: Không thể xóa người dùng');
         }
     }
 
@@ -651,14 +756,18 @@
             if (!Array.isArray(products) || products.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Không có dữ liệu</td></tr>';
             } else {
-                tbody.innerHTML = products.map(product => `
+                tbody.innerHTML = products.map(product => {
+                    const escapedName = escapeHtml(product.productName);
+                    const escapedDesc = escapeHtml(product.description || '');
+                    const escapedImg = escapeHtml(product.imageUrl || '');
+                    return `
                 <tr>
                     <td>${product.productId}</td>
-                    <td>${escapeHtml(product.productName)}</td>
+                    <td>${escapedName}</td>
                     <td>${formatCurrency(product.price)}</td>
                     <td>${product.quantity}</td>
                     <td>
-                        <button class="btn btn-primary btn-sm" onclick="openEditProduct(${product.productId}, ${JSON.stringify(escapeHtml(product.productName))}, ${JSON.stringify(escapeHtml(product.description || ''))}, ${product.price}, ${product.quantity}, ${JSON.stringify(escapeHtml(product.imageUrl || ''))})">
+                        <button class="btn btn-primary btn-sm" onclick='openEditProduct(${product.productId}, ${JSON.stringify(escapedName)}, ${JSON.stringify(escapedDesc)}, ${product.price}, ${product.quantity}, ${JSON.stringify(escapedImg)})'>
                             Sửa
                         </button>
                         <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.productId})">
@@ -666,7 +775,7 @@
                         </button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
             }
         } catch (error) {
             console.error('Error loading products:', error);
@@ -682,6 +791,7 @@
         const priceEl = document.getElementById('product-price');
         const qtyEl = document.getElementById('product-quantity');
         const imgEl = document.getElementById('product-image-url');
+        const previewContainer = document.getElementById('image-preview-container');
 
         if (titleEl) titleEl.textContent = 'Thêm sản phẩm';
         if (nameEl) nameEl.value = '';
@@ -689,6 +799,7 @@
         if (priceEl) priceEl.value = '';
         if (qtyEl) qtyEl.value = '';
         if (imgEl) imgEl.value = '';
+        if (previewContainer) previewContainer.style.display = 'none';
 
         openModal('product-modal');
     }
@@ -708,6 +819,9 @@
         if (priceEl) priceEl.value = price;
         if (qtyEl) qtyEl.value = quantity;
         if (imgEl) imgEl.value = imageUrl;
+
+        // Trigger image preview for existing URL
+        previewProductImage();
 
         openModal('product-modal');
     }
@@ -791,6 +905,82 @@
             console.error('Error deleting product:', error);
             alert('Lỗi: Không thể xóa sản phẩm');
         }
+    }
+
+    // Image preview functions
+    let imagePreviewTimeout = null;
+    const IMAGE_PREVIEW_DEBOUNCE_MS = 500; // Debounce delay for image preview loading
+
+    function previewProductImage() {
+        const imgUrlEl = document.getElementById('product-image-url');
+        const previewContainer = document.getElementById('image-preview-container');
+        const previewImg = document.getElementById('product-image-preview');
+        const errorMsg = document.getElementById('image-error-message');
+        const loadingMsg = document.getElementById('image-loading-message');
+
+        if (!imgUrlEl || !previewContainer || !previewImg) return;
+
+        const url = imgUrlEl.value.trim();
+
+        // Clear previous timeout
+        if (imagePreviewTimeout) {
+            clearTimeout(imagePreviewTimeout);
+        }
+
+        // Hide preview if URL is empty
+        if (!url) {
+            previewContainer.style.display = 'none';
+            previewImg.style.display = 'none';
+            if (errorMsg) errorMsg.style.display = 'none';
+            if (loadingMsg) loadingMsg.style.display = 'none';
+            return;
+        }
+
+        // Validate URL format
+        const urlPattern = /^https?:\/\/.+/i;
+        if (!urlPattern.test(url)) {
+            previewContainer.style.display = 'block';
+            if (loadingMsg) loadingMsg.style.display = 'none';
+            if (errorMsg) errorMsg.style.display = 'block';
+            previewImg.style.display = 'none';
+            return;
+        }
+
+        // Validate image file extension
+        const imageExtensions = /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i;
+        const hasImageExtension = imageExtensions.test(url);
+
+        // Show preview container and loading message
+        previewContainer.style.display = 'block';
+        if (loadingMsg) loadingMsg.style.display = 'block';
+        if (errorMsg) errorMsg.style.display = 'none';
+        previewImg.style.display = 'none';
+
+        // Debounce the image loading
+        imagePreviewTimeout = setTimeout(() => {
+            // Show a warning if the URL doesn't have a recognized image extension
+            if (!hasImageExtension && loadingMsg) {
+                loadingMsg.innerHTML = '⚠️ URL không có phần mở rộng hình ảnh thông thường. Đang thử tải...';
+            }
+            previewImg.src = url;
+        }, IMAGE_PREVIEW_DEBOUNCE_MS);
+    }
+
+    function hideImageMessages() {
+        const errorMsg = document.getElementById('image-error-message');
+        const loadingMsg = document.getElementById('image-loading-message');
+        if (errorMsg) errorMsg.style.display = 'none';
+        if (loadingMsg) loadingMsg.style.display = 'none';
+    }
+
+    function showImageError() {
+        const previewImg = document.getElementById('product-image-preview');
+        const errorMsg = document.getElementById('image-error-message');
+        const loadingMsg = document.getElementById('image-loading-message');
+
+        if (previewImg) previewImg.style.display = 'none';
+        if (loadingMsg) loadingMsg.style.display = 'none';
+        if (errorMsg) errorMsg.style.display = 'block';
     }
 
     // Initialize on page load
